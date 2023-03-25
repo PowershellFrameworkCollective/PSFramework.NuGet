@@ -1,0 +1,11 @@
+﻿TOPIC
+	about_PSFramework.NuGet
+	
+SHORT DESCRIPTION
+	Explains how to use the PSFramework.NuGet powershell module
+	
+LONG DESCRIPTION
+	<Insert Content here>
+
+KEYWORDS
+	PSFramework.NuGet

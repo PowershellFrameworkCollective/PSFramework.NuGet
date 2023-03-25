@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2010
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F1939BCE-440E-487C-A6AE-638CFFAD7E33}") = "PSFramework.NuGet", "PSFramework.NuGet\PSFramework.NuGet.csproj", "{66896878-3A1E-4286-9D06-B5CC63F899C9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{66896878-3A1E-4286-9D06-B5CC63F899C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66896878-3A1E-4286-9D06-B5CC63F899C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66896878-3A1E-4286-9D06-B5CC63F899C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66896878-3A1E-4286-9D06-B5CC63F899C9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C0D4518A-F18E-4677-8E56-BB16DAAE4586}
+	EndGlobalSection
+EndGlobal
