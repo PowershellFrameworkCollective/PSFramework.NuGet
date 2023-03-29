@@ -1,4 +1,7 @@
-﻿
+﻿# Don't include the module files - are added during build
+PSFramework.NuGet/modules/*.zip
+PSFramework.NuGet/modules/*.json
+
 # ignore the settings folder and files for VSCode and PSS
 .vscode/*
 *.psproj

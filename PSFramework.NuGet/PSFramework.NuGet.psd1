@@ -36,20 +36,23 @@
 	# TypesToProcess = @('xml\PSFramework.NuGet.Types.ps1xml')
 	
 	# Format files (.ps1xml) to be loaded when importing this module
-	# FormatsToProcess = @('xml\PSFramework.NuGet.Format.ps1xml')
+	FormatsToProcess = @('xml\PSFramework.NuGet.Format.ps1xml')
 	
 	# Functions to export from this module
 	FunctionsToExport = @(
 		'Find-PSFModule'
 		'Get-PSFPowerShellGet'
+		'Get-PSFRepository'
 		'Install-PSFModule'
 		'Install-PSFPowerShellGet'
 		'Publish-PSFModule'
 		'Publish-PSFResourceModule'
 		'Save-PSFModule'
+		'Save-PSFPowerShellGet'
 		'Save-PSFResourceModule'
 		'Search-PSFPowerShellGet'
 		'Update-PSFModule'
+		'Update-PSFRepository'
 	)
 	
 	# Cmdlets to export from this module

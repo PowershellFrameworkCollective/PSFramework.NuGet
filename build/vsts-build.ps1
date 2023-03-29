@@ -100,21 +100,3 @@ if ($AutoVersion)
 	Update-ModuleManifest -Path "$($publishDir.FullName)\PSFramework.NuGet\PSFramework.NuGet.psd1" -ModuleVersion "$($localVersion.Major).$($localVersion.Minor).$($newBuildNumber)"
 }
 #endregion Updating the Module Version
-
-#region Publish
-if ($SkipPublish) { return }
-if ($LocalRepo)
-{
-	# Dependencies must go first
-	Write-PSFMessage -Level Important -Message "Creating Nuget Package for module: PSFramework"
-	New-PSMDModuleNugetPackage -ModulePath (Get-Module -Name PSFramework).ModuleBase -PackagePath .
-	Write-PSFMessage -Level Important -Message "Creating Nuget Package for module: PSFramework.NuGet"
-	New-PSMDModuleNugetPackage -ModulePath "$($publishDir.FullName)\PSFramework.NuGet" -PackagePath .
-}
-else
-{
-	# Publish to Gallery
-	Write-PSFMessage -Level Important -Message "Publishing the PSFramework.NuGet module to $($Repository)"
-	Publish-Module -Path "$($publishDir.FullName)\PSFramework.NuGet" -NuGetApiKey $ApiKey -Force -Repository $Repository
-}
-#endregion Publish
