@@ -2,14 +2,18 @@
 	[CmdletBinding()]
 	Param (
 		[string[]]
-		$Name = '*'
+		$Name = '*',
+
+		[ValidateSet('All','V2','V3')]
+		[string]
+		$Type = 'All'
 	)
 	
 	begin {
 		Search-PSFPowerShellGet -UseCache
 	}
 	process {
-		if ($script:psget.V3) {
+		if ($script:psget.V3 -and $Type -in 'All','V3') {
 			foreach ($repository in Get-PSResourceRepository -Name $Name) {
 				[PSCustomObject]@{
 					PSTypeName = 'PSFramework.NuGet.Repository'
@@ -23,7 +27,7 @@
 				}
 			}
 		}
-		if ($script:psget.V2) {
+		if ($script:psget.V2 -and $Type -in 'All','V2') {
 			$status = 'OK'
 			if (-not $script:psget.v2CanPublish) { $status = 'NoPublish' }
 			if (-not $script:psget.v2CanInstall) { $status = 'NoInstall' }

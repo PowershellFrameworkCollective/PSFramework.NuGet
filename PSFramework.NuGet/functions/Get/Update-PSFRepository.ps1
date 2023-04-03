@@ -16,6 +16,7 @@
 		- Trusted: Whether the repository should be trusted. Can be set to 0, 1, $false or $true. Defaults to $true.
 		- Present: Whether the repository should exist at all. Can be set to 0, 1, $false or $true. Defaults to $true.
 		           Allows creating delete orders. Does not differentiate between V2 & V3
+	    - Proxy: Link to the proxy to use. Property only available when creating a new repository, not for updating an existing one.
 	   
 	    Supported "Type" settings to handle different PowerShellGet versions:
 		- Any: Will register as V3 if available, otherwise V2. Will not update to V3 if already on V2.
@@ -137,7 +138,7 @@
 						$matchingRepo.Type -ne 'V2' -and
 						$matchingRepo.Priority -ne $configuredRepo.Priority
 					) {
-						$changes.Trusted = $configuredRepo.Priority
+						$changes.Priority = $configuredRepo.Priority
 					}
 
 					if ($changes.Count -eq 0) { continue }
@@ -160,7 +161,127 @@
 				$Change
 			)
 
+			$registerV2 = $script:psget.V2
+			$registerV3 = $script:psget.V3
 
+			if ($Change.Actual.Type -contains 'V3') { $registerV3 = $false }
+			if ($Change.Actual.Type -contains 'V2') { $registerV2 = $false }
+
+			# If any already exists, we obviously want to create the other and need not process types again
+			if (-not $Change.Actual) {
+				switch ($Change.Configured.Type) {
+					'Any' {
+						if ($registerV3) { $registerV2 = $false }
+					}
+					'Update' {
+						if ($registerV3) { $registerV2 = $false }
+					}
+					'V2' { $registerV3 = $false }
+					'V2Preferrred' { $registerV3 = $false }
+					'V3' { $registerV2 = $false }
+				}
+			}
+
+			$trusted = $Change.Configured.Trusted -as [int]
+			if ($null -eq $trusted -and $Change.Configured.Trusted -in 'True', 'False') {
+				$trusted = $Change.Configured.Trusted -eq 'True'
+			}
+			if ($null -eq $trusted) { $trusted = $true }
+			
+			if ($registerV2) {
+				$uri = $Change.Configured.Uri -replace 'v3/index.json$', 'v2'
+
+				$param = @{
+					Name = $Change.Configured._Name
+					SourceLocation = $uri
+					PublishLocation = $uri
+					ErrorAction = 'Stop'
+				}
+				if ($trusted) { $param.InstallationPolicy = 'Trusted' }
+				if ($Change.Configured.Proxy) { $param.Proxy = $Change.Configured.Proxy }
+				try { Register-PSRepository @param }
+				catch {
+					Write-PSFMessage -Level Warning -String 'Update-PSFRepository.Register.Failed' -StringValues V2, $param.Name, $uri -ErrorRecord $_
+				}
+			}
+			if ($registerV3) {
+				$param = @{
+					Name = $Change.Configured._Name
+					Uri = $Change.Configured.Uri
+					Trusted = $trusted
+					ErrorAction = 'Stop'
+				}
+				if ($null -ne $Change.Configured.Priority) {
+					$param.Priority = $Change.Configured.Priority
+				}
+				if ($Change.Configured.Proxy) { $param.Proxy = $Change.Configured.Proxy }
+				try { Register-PSResourceRepository @param }
+				catch {
+					Write-PSFMessage -Level Warning -String 'Update-PSFRepository.Register.Failed' -StringValues V3, $param.Name, $param.Uri -ErrorRecord $_
+				}
+			}
+		}
+		
+		function Remove-Repository {
+			[CmdletBinding()]
+			param (
+				$Change
+			)
+
+			switch ($Change.Actual.Type) {
+				'V2' {
+					Invoke-PSFProtectedCommand -ActionString 'Update-PSFRepository.Repository.Unregister' -ActionStringValues $change.Actual.Type, $Change.Actual.Name -ScriptBlock {
+						Unregister-PSRepository -Name $change.Actual.Name -ErrorAction Stop
+					} -Target $change.Actual.Name -PSCmdlet $PSCmdlet -EnableException $false
+				}
+				'V3' {
+					Invoke-PSFProtectedCommand -ActionString 'Update-PSFRepository.Repository.Unregister' -ActionStringValues $change.Actual.Type, $Change.Actual.Name -ScriptBlock {
+						Unregister-PSResourceRepository -Name $change.Actual.Name -ErrorAction Stop
+					} -Target $change.Actual.Name -PSCmdlet $PSCmdlet -EnableException $false
+				}
+			}
+		}
+		
+		function Set-Repository {
+			[CmdletBinding()]
+			param (
+				$Change	
+			)
+
+			$param = @{
+				Name = $change.Actual.Name
+			}
+			switch ($Change.Actual.Type) {
+				'V2' {
+					if ($Change.Changes.Uri) {
+						$param.SourceLocation = $Change.Changes.Uri
+						$param.PublishLocation = $Change.Changes.Uri
+					}
+					if ($Change.Changes.Keys -contains 'Trusted') {
+						if ($Change.Changes.Trusted) { $param.InstallationPolicy = 'Trusted' }
+						else { $param.InstallationPolicy = 'Untrusted' }
+					}
+
+					Invoke-PSFProtectedCommand -ActionString 'Update-PSFRepository.Repository.Update' -ActionStringValues $change.Actual.Type, $Change.Actual.Name -ScriptBlock {
+						Set-PSRepository @param -ErrorAction Stop
+					} -Target $change.Actual.Name -PSCmdlet $PSCmdlet -EnableException $false
+				}
+				'V3' {
+					if ($Change.Changes.Uri) {
+						$param.Uri = $Change.Changes.Uri
+					}
+					if ($Change.Changes.Keys -contains 'Priority') {
+						$param.Priority = $Change.Changes.Priority 
+					}
+					if ($Change.Changes.Keys -contains 'Trusted') {
+						$param.Trusted = $Change.Changes.Trusted 
+					}
+
+					Invoke-PSFProtectedCommand -ActionString 'Update-PSFRepository.Repository.Update' -ActionStringValues $change.Actual.Type, $Change.Actual.Name -ScriptBlock {
+						Set-PSResourceRepository @param -ErrorAction Stop
+					} -Target $change.Actual.Name -PSCmdlet $PSCmdlet -EnableException $false
+				}
+			}
 		}
 		#endregion Functions
 	}

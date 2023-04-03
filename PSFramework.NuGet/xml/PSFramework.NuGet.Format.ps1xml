@@ -1,6 +1,53 @@
 ﻿<?xml version="1.0" encoding="utf-16"?>
 <Configuration>
     <ViewDefinitions>
+        <!-- PSFramework.NuGet.ModuleInfo -->
+        <View>
+            <Name>PSFramework.NuGet.ModuleInfo</Name>
+            <ViewSelectedBy>
+                <TypeName>PSFramework.NuGet.ModuleInfo</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader>
+                        <Label>Commands</Label>
+                    </TableColumnHeader>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Name</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Version</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Type</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Repository</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Author</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <ScriptBlock>
+ $_.Commands -join ', ' 
+                                </ScriptBlock>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
         <!-- PSFramework.NuGet.Repository -->
         <View>
             <Name>PSFramework.NuGet.Repository</Name>
