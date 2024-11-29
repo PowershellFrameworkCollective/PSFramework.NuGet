@@ -12,21 +12,21 @@
 	Author            = 'Friedrich Weinmann'
 	
 	# Company or vendor of this module
-	CompanyName       = 'Microsoft'
+	CompanyName       = ' '
 	
 	# Copyright statement for this module
-	Copyright         = 'Copyright (c) 2023 Friedrich Weinmann'
+	Copyright         = 'Copyright (c) 2024 Friedrich Weinmann'
 	
 	# Description of the functionality provided by this module
 	Description       = 'A wrapper around the PowerShellGet modules'
 	
 	# Minimum version of the Windows PowerShell engine required by this module
-	PowerShellVersion = '5.0'
+	PowerShellVersion = '5.1'
 	
 	# Modules that must be imported into the global environment prior to importing
 	# this module
 	RequiredModules   = @(
-		@{ ModuleName = 'PSFramework'; ModuleVersion = '1.7.270' }
+		@{ ModuleName = 'PSFramework'; ModuleVersion = '1.12.346' }
 	)
 	
 	# Assemblies that must be loaded prior to importing this module
@@ -41,6 +41,7 @@
 	# Functions to export from this module
 	FunctionsToExport = @(
 		'Find-PSFModule'
+		'Get-PSFModuleSignature'
 		'Get-PSFPowerShellGet'
 		'Get-PSFRepository'
 		'Install-PSFModule'
@@ -77,13 +78,13 @@
 		PSData = @{
 			
 			# Tags applied to this module. These help with module discovery in online galleries.
-			# Tags = @()
+			Tags = @('nuget', 'modules', 'psresource')
 			
 			# A URL to the license for this module.
-			# LicenseUri = ''
+			LicenseUri = 'https://github.com/PowershellFrameworkCollective/PSFramework.NuGet/blob/master/LICENSE'
 			
 			# A URL to the main website for this project.
-			# ProjectUri = ''
+			ProjectUri = 'https://github.com/PowershellFrameworkCollective/PSFramework.NuGet'
 			
 			# A URL to an icon representing this module.
 			# IconUri = ''

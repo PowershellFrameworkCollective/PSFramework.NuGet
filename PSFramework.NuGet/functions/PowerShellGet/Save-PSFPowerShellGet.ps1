@@ -1,7 +1,25 @@
 ﻿function Save-PSFPowerShellGet {
+	<#
+	.SYNOPSIS
+		Downloads and provides the latest packages for both PowerShellGet V2 and V3.
+	
+	.DESCRIPTION
+		Downloads and provides the latest packages for both PowerShellGet V2 and V3.
+		These can then be used by this module to deploy and bootstrap offline computers with package management tooling.
+	
+	.PARAMETER Path
+		The path where to deploy the module packages as zip-files.
+		Must be a directory.
+		Defaults to: %AppData%/PowerShell/PSFramework/modules/PowerShellGet
+	
+	.EXAMPLE
+		PS C:\> Save-PSFPowerShellGet
+		
+		Downloads and deploys the latest version of Get V2 & V3 to "%AppData%/PowerShell/PSFramework/modules/PowerShellGet"
+	#>
 	[CmdletBinding()]
 	param (
-		[PsfValidateScript('PSFramework.Validate.FSPath.Folder', ErrorMessage = 'PSFramework.Validate.FSPath.Folder')]
+		[PsfValidateScript('PSFramework.Validate.FSPath.Folder', ErrorString = 'PSFramework.Validate.FSPath.Folder')]
 		[string]
 		$Path
 	)

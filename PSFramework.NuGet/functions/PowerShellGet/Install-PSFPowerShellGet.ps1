@@ -80,7 +80,7 @@
 						Resolved = $resolvedUrl
 						FileName = ''
 					}
-					$onlineVersion[$link].FileName = '{0}-{1}.zip' -f $pkgData[$link].Name, $pkgData[$link].Version
+					$onlineVersion[$link].FileName = '{0}-{1}.zip' -f $onlineVersion[$link].Name, $onlineVersion[$link].Version
 				}
 			}
 			#endregion Check Online
@@ -99,6 +99,7 @@
 			
 			# If online version is newer than internal, download to appdata as cached version
 			if ('Online' -eq $source) {
+				if (-not (Test-Path -Path $SourcePath)) { $null = New-Item -Path $SourcePath -ItemType Directory -Force }
 				Save-PSFPowerShellGet -Path $SourcePath # This can never happen if the user specified a path, so no risk of overwriting.
 			}
 
@@ -182,7 +183,13 @@
 				#region V2 Bootstrap
 				V2Binaries {
 					if ($isOnWindows) {
+						if (-not (Test-Path -Path "$env:ProgramFiles\Microsoft\Windows\PowerShell\PowerShellGet")) {
+							$null = New-Item -Path "$env:ProgramFiles\Microsoft\Windows\PowerShell\PowerShellGet" -ItemType Directory -Force
+						}
 						Copy-Item -Path (Join-Path -Path $tempFolder -ChildPath 'NuGet.exe') -Destination "$env:ProgramFiles\Microsoft\Windows\PowerShell\PowerShellGet" -Force
+						if (-not (Test-Path -Path "$env:ProgramFiles\PackageManagement\ProviderAssemblies\nuget\2.8.5.208")) {
+							$null = New-Item -Path "$env:ProgramFiles\PackageManagement\ProviderAssemblies\nuget\2.8.5.208" -ItemType Directory -Force
+						}
 						Copy-Item -Path (Join-Path -Path $tempFolder -ChildPath 'Microsoft.PackageManagement.NuGetProvider.dll') -Destination "$env:ProgramFiles\PackageManagement\ProviderAssemblies\nuget\2.8.5.208" -Force
 					}
 					else {

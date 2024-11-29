@@ -34,6 +34,7 @@
 	begin {
 		$code = {
 			$modules = Get-Module -Name PowerShellGet -ListAvailable
+			$modulesV3 = Get-Module -Name Microsoft.PowerShell.PSResourceGet -ListAvailable
 
 			$isOnWindows = $PSVersionTable.PSVersion.Major -lt 6 -or $isWindows
 			if ($isOnWindows) {
@@ -52,7 +53,7 @@
 				PSTypeName = 'PSFramework.NuGet.GetReport'
 				ComputerName = $env:COMPUTERNAME
 				V2           = ($modules | Where-Object { $_.Version.Major -lt 3 }) -as [bool]
-				V3           = ($modules | Where-Object { $_.Version.Major -eq 3 }) -as [bool]
+				V3           = $modulesV3 -as [bool]
 				V2CanInstall = $v2CanInstall
 				V2CanPublish = Test-Path -Path $nugetPath
 				Modules      = $modules

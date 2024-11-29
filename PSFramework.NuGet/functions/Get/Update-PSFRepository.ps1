@@ -11,7 +11,7 @@
 
 		Available settings:
 		- Uri: Url or filesystem path to the repository. Used for both install and publish.
-		- Priority: Priority of a PowerShellGet V3 Repository. Numeric value, determines repository precedence
+		- Priority: Priority of a PowerShell Repository. Numeric value, determines repository precedence.
 		- Type: What kind of PowerShellGet version to apply the configuration to. Details on the options below. Defaults to 'Any'.
 		- Trusted: Whether the repository should be trusted. Can be set to 0, 1, $false or $true. Defaults to $true.
 		- Present: Whether the repository should exist at all. Can be set to 0, 1, $false or $true. Defaults to $true.

@@ -39,7 +39,7 @@
 					Type       = 'V2'
 					Status     = $status
 					Trusted    = $repository.Trusted
-					Priority   = -1
+					Priority   = Get-PSFConfigValue -FullName "PSFramework.NuGet.Repositories.$($repository.Name).Priority" -Fallback 100
 					Uri        = $repository.SourceLocation
 					Object     = $repository
 				}
