@@ -60,13 +60,13 @@
 				ByObject { Resolve-ModuleTarget -InputObject $InputObject -Cmdlet $PSCmdlet }
 				ByName { Resolve-ModuleTarget -Name $Name -Version $Version -Prerelease:$Prerelease -Cmdlet $PSCmdlet }
 			}
-			if (-not $PSCmdlet.ShouldProcess(($installData.Name -join ', '), "Saving modules to $Path")) {
+			if (-not $PSCmdlet.ShouldProcess(($installData.TargetName -join ', '), "Saving modules to $Path")) {
 				return
 			}
 			
 			Save-StagingModule -InstallData $installData -Path $tempDirectory -Repositories $repositories -Cmdlet $PSCmdlet -Credential $Credential -SkipDependency:$SkipDependency -AuthenticodeCheck:$AuthenticodeCheck
 			#TODO: Implement
-			Publish-StagingModule -Path $tempDirectory -TargetPath $resolvedPaths -Force:$Force
+			Publish-StagingModule -Path $tempDirectory -TargetPath $resolvedPaths -Force:$Force -Cmdlet $PSCmdlet
 		}
 		finally {
 			Remove-PSFTempItem -Name Staging -ModuleName PSFramework.NuGet

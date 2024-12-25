@@ -52,7 +52,6 @@
 		'Save-PSFPowerShellGet'
 		'Save-PSFResourceModule'
 		'Search-PSFPowerShellGet'
-		'Update-PSFModule'
 		'Update-PSFRepository'
 	)
 	

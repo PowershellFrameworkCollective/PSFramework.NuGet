@@ -128,6 +128,7 @@
 			[PSCustomObject]@{
 				PSTypeName = 'PSFramework.NuGet.ModuleTarget'
 				Name       = $actualName
+				TargetName = "$actualName ($versionString)"
 				Version    = $versionString
 				V2Param    = $v2Param
 				V3Param    = $v3Param
