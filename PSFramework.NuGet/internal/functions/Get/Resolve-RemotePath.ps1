@@ -15,6 +15,10 @@
 	.PARAMETER ComputerName
 		The computers to check the paths on.
 		Supports established PSSession objects.
+
+	.PARAMETER ManagedSession
+		Managed Remoting Sessions to associate with the paths resolved.
+		Used later to bulk-process the paths in parallel.
 	
 	.PARAMETER PathHandling
 		Whether all specified paths must exist on a target computer, or whether a single finding counts as success.
@@ -70,6 +74,8 @@
 		[PSFComputer[]]
 		$ComputerName,
 
+		$ManagedSession,
+
 		[ValidateSet('All', 'Any')]
 		[string]
 		$PathHandling = 'All',
@@ -86,10 +92,23 @@
 			param ($Data)
 
 			$pathResults = foreach ($path in $Data.Paths) {
-				[PSCustomObject]@{
-					ComputerName = $env:COMPUTERNAME
-					Path         = $path
-					Exists       = Test-Path -Path $path
+				try {
+					$resolvedPaths = Resolve-Path -Path $path -ErrorAction Stop
+				}
+				catch {
+					[PSCustomObject]@{
+						ComputerName = $env:COMPUTERNAME
+						Path         = $path
+						Exists       = $false
+					}
+					continue
+				}
+				foreach ($resolvedPath in $resolvedPaths) {
+					[PSCustomObject]@{
+						ComputerName = $env:COMPUTERNAME
+						Path         = $resolvedPath
+						Exists       = $true
+					}
 				}
 			}
 
@@ -101,6 +120,8 @@
 				ExistsAny    = @($pathResults).Where{ $_.Exists }.Count -gt 0
 				Success      = $null
 				Error        = $null
+				SessionID    = $global:__PsfSessionId
+				Session      = $null
 			}
 			if ($Data.PathHandling -eq 'All') { $result.Success = $result.ExistsAll }
 			else { $result.Success = $result.ExistsAny }
@@ -139,6 +160,8 @@
 					ExistsAny    = $null
 					Success      = $false
 					Error        = $failedTarget
+					SessionID    = $null
+					Session      = $null
 				}
 			}
 			$testResult = @($testResult) + @($failedResults) | Remove-PSFNull
@@ -146,6 +169,7 @@
 		#endregion Collect Test-Results
 
 		foreach ($result in $testResult) {
+			if ($result.SessionID) { $result.Session = @($ManagedSession).Where{ $_.ID -eq $result.SessionID }[0] }
 			[PSFramework.Object.ObjectHost]::AddScriptMethod($result, 'ToString', { '{0}: {1}' -f $this.ComputerName, ($this.Path -join ' | ') })
 			if ($result.Success) { continue }
 
@@ -153,17 +177,17 @@
 				Write-PSFMessage -String 'Resolve-RemotePath.Error.UnReached' -StringValues $result.ComputerName, ($Path -join ' | ') -Tag fail, connect -Target $result
 			}
 			else {
-				Write-PSFMessage -String 'Resolve-RemotePath.Error.NotFound' -StringValues $result.ComputerName, (@($result.Results).Where{-not $_.Exists}.Path -join ' | ') -Tag fail, notfound -Target $result
+				Write-PSFMessage -String 'Resolve-RemotePath.Error.NotFound' -StringValues $result.ComputerName, (@($result.Results).Where{ -not $_.Exists }.Path -join ' | ') -Tag fail, notfound -Target $result
 			}
 
 			$Cmdlet.WriteError($result.Error)
 		}
 
 		if ($TargetHandling -eq 'All' -and @($testResult).Where{ -not $_.Success }.Count -gt 0) {
-			Stop-PSFFunction -String 'Resolve-RemotePath.Fail.NotAll' -StringValues ($Path -join ' | ') -EnableException $true -Cmdlet $PSCmdlet
+			Stop-PSFFunction -String 'Resolve-RemotePath.Fail.NotAll' -StringValues ($Path -join ' | ') -EnableException $true -Cmdlet $Cmdlet
 		}
 		if ($TargetHandling -eq 'Any' -and @($testResult).Where{ $_.Success }.Count -eq 0) {
-			Stop-PSFFunction -String 'Resolve-RemotePath.Fail.NotAny' -StringValues ($Path -join ' | ') -EnableException $true -Cmdlet $PSCmdlet
+			Stop-PSFFunction -String 'Resolve-RemotePath.Fail.NotAny' -StringValues ($Path -join ' | ') -EnableException $true -Cmdlet $Cmdlet
 		}
 
 		$testResult

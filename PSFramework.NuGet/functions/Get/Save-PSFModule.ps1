@@ -32,6 +32,10 @@
 		[PSCredential]
 		$Credential,
 
+		[ValidateRange(1,[int]::MaxValue)]
+		[int]
+		$ThrottleLimit = 5,
+
 		[PsfArgumentCompleter('PSFramework.NuGet.Repository')]
 		[string[]]
 		$Repository,
@@ -50,7 +54,8 @@
 	
 	begin {
 		$repositories = Resolve-Repository -Name $Repository -Type $Type -Cmdlet $PSCmdlet # Terminates if no repositories found
-		$resolvedPaths = Resolve-RemotePath -Path $Path -ComputerName $ComputerName -TargetHandling Any -Cmdlet $PSCmdlet # Errors for bad paths, terminates if no path
+		$managedSessions = New-ManagedSession -ComputerName $ComputerName -Cmdlet $PSCmdlet -Type Temporary
+		$resolvedPaths = Resolve-RemotePath -Path $Path -ComputerName $managedSessions.Session -ManagedSession $managedSessions -TargetHandling Any -Cmdlet $PSCmdlet # Errors for bad paths, terminates if no path
 		
 		$tempDirectory = New-PSFTempDirectory -Name Staging -ModuleName PSFramework.NuGet
 	}
@@ -65,8 +70,7 @@
 			}
 			
 			Save-StagingModule -InstallData $installData -Path $tempDirectory -Repositories $repositories -Cmdlet $PSCmdlet -Credential $Credential -SkipDependency:$SkipDependency -AuthenticodeCheck:$AuthenticodeCheck
-			#TODO: Implement
-			Publish-StagingModule -Path $tempDirectory -TargetPath $resolvedPaths -Force:$Force -Cmdlet $PSCmdlet
+			Publish-StagingModule -Path $tempDirectory -TargetPath $resolvedPaths -Force:$Force -Cmdlet $PSCmdlet -ThrottleLimit $ThrottleLimit
 		}
 		finally {
 			Remove-PSFTempItem -Name Staging -ModuleName PSFramework.NuGet
