@@ -3,7 +3,7 @@
 	RootModule        = 'PSFramework.NuGet.psm1'
 	
 	# Version number of this module.
-	ModuleVersion     = '1.0.0'
+	ModuleVersion     = '0.9.0'
 	
 	# ID used to uniquely identify this module
 	GUID              = 'ad0f2a25-552f-4dd6-bd8e-5ddced2a5d88'
@@ -52,6 +52,7 @@
 		'Save-PSFPowerShellGet'
 		'Save-PSFResourceModule'
 		'Search-PSFPowerShellGet'
+		'Set-PSFRepository'
 		'Update-PSFRepository'
 	)
 	

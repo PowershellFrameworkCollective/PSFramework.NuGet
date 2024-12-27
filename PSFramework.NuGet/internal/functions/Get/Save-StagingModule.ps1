@@ -1,4 +1,45 @@
 ﻿function Save-StagingModule {
+	<#
+	.SYNOPSIS
+		Downloads modules from a repository into a specified, local path.
+	
+	.DESCRIPTION
+		Downloads modules from a repository into a specified, local path.
+		This is used internally by Save-PSFModule to cache modules to deploy in one central location that is computer-local.
+	
+	.PARAMETER InstallData
+		The specifics of the module to download.
+		The result of the Resolve-ModuleTarget command, it contains V2/V3 specific targeting information.
+	
+	.PARAMETER Path
+		The path where to save them to.
+	
+	.PARAMETER Repositories
+		The repositories to contact.
+		Must be repository objects as returned by Get-PSFRepository.
+		Repository priority will be adhered.
+	
+	.PARAMETER Credential
+		The Credentials to use for accessing the repositories.
+	
+	.PARAMETER SkipDependency
+		Do not include any dependencies.
+		Works with PowerShellGet V1/V2 as well.
+	
+	.PARAMETER AuthenticodeCheck
+		Whether modules must be correctly signed by a trusted source.
+		Uses "Get-PSFModuleSignature" for validation.
+		Defaults to: $false
+		Default can be configured under the 'PSFramework.NuGet.Install.AuthenticodeSignature.Check' setting.
+	
+	.PARAMETER Cmdlet
+		The $PSCmdlet variable of the calling command, used to ensure errors happen within the scope of the caller, hiding this internal helper command from the user.
+	
+	.EXAMPLE
+		PS C:\> Save-StagingModule -InstallData $installData -Path $tempDirectory -Repositories $repositories -Cmdlet $PSCmdlet -Credential $Credential -SkipDependency:$SkipDependency -AuthenticodeCheck:$AuthenticodeCheck
+	
+		Downloads modules from a repository into a specified, local path.
+	#>
 	[CmdletBinding()]
 	param (
 		[object[]]
@@ -53,6 +94,7 @@
 				Repository    = $Repository.Name
 			}
 			if ($Credential) { $callSpecifics.Credential = $Credential }
+			if ($Repository.Credential) { $callSpecifics.Credential = $Repository.Credential }
 
 			$result = [PSCustomObject]@{
 				Success        = $false
@@ -151,11 +193,14 @@
 			Write-PSFMessage -String 'Save-StagingModule.SavingV3.Start' -StringValues $Item.Name, $Item.Version, $Repository.Name, $Repository.Type -Target $Item
 
 			$callSpecifics = @{
-				AcceptLicense = $true
 				ErrorAction   = 'Stop'
 				Repository    = $Repository.Name
 			}
+			if ((Get-Command Save-PSResource).Parameters.Keys -contains 'AcceptLicense') {
+				$callSpecifics.AcceptLicense = $true
+			}
 			if ($Credential) { $callSpecifics.Credential = $Credential }
+			if ($Repository.Credential) { $callSpecifics.Credential = $Repository.Credential }
 			if ($SkipDependency) { $callSpecifics.SkipDependencyCheck = $true }
 
 			$result = [PSCustomObject]@{

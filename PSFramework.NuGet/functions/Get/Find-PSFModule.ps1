@@ -1,4 +1,60 @@
 ﻿function Find-PSFModule {
+	<#
+	.SYNOPSIS
+		Search for modules in PowerShell repositories.
+	
+	.DESCRIPTION
+		Search for modules in PowerShell repositories.
+	
+	.PARAMETER Name
+		Name(s) of the module(s) to look for.
+	
+	.PARAMETER Repository
+		The repositories to search in.
+	
+	.PARAMETER Tag
+		Tags to search by.
+	
+	.PARAMETER Credential
+		Credentials to use to access repositories.
+	
+	.PARAMETER AllowPrerelease
+		Whether to include modules flagged as "Prerelease" as part of the results
+	
+	.PARAMETER IncludeDependencies
+		Whether to also list all required dependencies.
+	
+	.PARAMETER Version
+		Version constrains for the module to search.
+		Will use the latest version available within the limits.
+		Examples:
+		- "1.0.0": EXACTLY this one version
+		- "1.0.0-1.999.999": Any version between the two limits (including the limit values)
+		- "[1.0.0-2.0.0)": Any version greater or equal to 1.0.0 but less than 2.0.0
+		- "2.3.0-": Any version greater or equal to 2.3.0.
+
+		Supported Syntax:
+		<Prefix><Version><Connector><Version><Suffix>
+
+		Prefix: "[" (-ge) or "(" (-gt) or nothing (-ge)
+		Version: A valid version of 2-4 elements or nothing
+		Connector: A "," or a "-"
+		Suffix: "]" (-le) or ")" (-lt) or nothing (-le)
+	
+	.PARAMETER AllVersions
+		Whether all versions available should be returned together
+	
+	.PARAMETER Type
+		What kind of repository to search in.
+		+ All: (default) Use all, irrespective of type
+		+ V2: Only search classic repositories, as would be returned by Get-PSRepository
+		+ V3: Only search modern repositories, as would be returned by Get-PSResourceRepository
+	
+	.EXAMPLE
+		PS C:\> Find-PSFModule -Name PSFramework
+
+		Search all configured repositories for the module "PSFramework"
+	#>
 	[CmdletBinding(DefaultParameterSetName = 'default')]
 	Param (
 		[Parameter(Position = 0)]
@@ -22,17 +78,9 @@
 		[switch]
 		$IncludeDependencies,
 
-		[Parameter(ParameterSetName = 'VersionRange')]
-		[version]
-		$MinimumVersion,
-
-		[Parameter(ParameterSetName = 'VersionRange')]
-		[version]
-		$MaximumVersion,
-
-		[Parameter(ParameterSetName = 'RequiredVersion')]
-		[version]
-		$RequiredVersion,
+		[Parameter(ParameterSetName = 'Version')]
+		[string]
+		$Version,
 
 		[Parameter(ParameterSetName = 'AllVersions')]
 		[switch]
@@ -71,11 +119,13 @@
 		}
 		#endregion Functions
 
-		$useVersionFilter = $MinimumVersion -or $MaximumVersion -or $RequiredVersion -or $AllVersions
-		switch ($PSCmdlet.ParameterSetName) {
-			'VersionRange' { $versionFilter = '[{0}, {1}]' -f $MinimumVersion, $MaximumVersion }
-			'RequiredVersion' { $versionFilter = "$RequiredVersion" }
-			'AllVersions' { $versionFilter = '*' }
+		$useVersionFilter = $Version -or $AllVersions
+		if ($Version) {
+			$convertedVersion = Read-VersionString -Version $Version -Cmdlet $PSCmdlet
+			$versionFilter = $convertedVersion.V3String
+		}
+		if ($PSCmdlet.ParameterSetName -eq 'AllVersions') {
+			$versionFilter = '*'
 		}
 
 		$param = $PSBoundParameters | ConvertTo-PSFHashtable -Include Name, Repository, Tag, Credential, IncludeDependencies
@@ -84,7 +134,12 @@
 		#region V2
 		if ($script:psget.V2 -and $Type -in 'All', 'V2') {
 			$paramClone = $param.Clone()
-			$paramClone += $PSBoundParameters | ConvertTo-PSFHashtable -Include MinimumVersion, MaximumVersion, RequiredVersion, AllVersions, AllowPrerelease
+			$paramClone += $PSBoundParameters | ConvertTo-PSFHashtable -Include AllVersions, AllowPrerelease
+			if ($Version) {
+				if ($convertedVersion.Required) { $paramClone.RequiredVersion = $convertedVersion.Required }
+				if ($convertedVersion.Minimum) { $paramClone.MinimumVersion = $convertedVersion.Minimum }
+				if ($convertedVersion.Maximum) { $paramClone.MaximumVersion = $convertedVersion.Maximum }
+			}
 			$execute = $true
 			if ($paramClone.Repository) {
 				$paramClone.Repository = $paramClone.Repository | Where-Object {

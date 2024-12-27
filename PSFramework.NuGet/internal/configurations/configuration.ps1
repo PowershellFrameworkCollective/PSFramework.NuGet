@@ -16,3 +16,4 @@ Set-PSFConfig -Module 'PSFramework.NuGet' -Name 'Import.IndividualFiles' -Value 
 
 Set-PSFConfig -Module 'PSFramework.NuGet' -Name 'Install.AuthenticodeSignature.Check' -Value $false -Initialize -Validation 'bool' -Description 'Whether on installation or download of module its code-signing will be checked first.'
 Set-PSFConfig -Module 'PSFramework.NuGet' -Name 'Remoting.DefaultConfiguration' -Value 'Microsoft.PowerShell' -Initialize -Validation string -Description 'The PSSessionConfiguration to use when initializing new PS remoting sessions'
+Set-PSFConfig -Module 'PSFramework.NuGet' -Name 'Remoting.Throttling' -Value 5 -Initialize -Validation integerpositive -Description 'Up to how many remote computers to deploy to in parallel.'

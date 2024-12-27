@@ -1,6 +1,36 @@
 ﻿function Get-PSFRepository {
+	<#
+	.SYNOPSIS
+		Lists available PowerShell repositories.
+	
+	.DESCRIPTION
+		Lists available PowerShell repositories.
+		Includes both classic (V2 | Get-PSRepository) and new (V3 | Get-PSResourceRepository) repositories.
+		This will also include additional metadata, including priority, which in this module is also applicable to classic repositories.
+
+		Note on Status:
+		In V2 repositories, the status can show "NoPublish" or "NoInstall".
+		This is determined by whether it has been bootstrapped at the system level.
+		If you have already bootstrapped it in user-mode, this may not be reflected correctly.
+		If your computer is internet-facing, it can also automatically bootstrap itself without any issues.
+	
+	.PARAMETER Name
+		Name of the repository to list.
+	
+	.PARAMETER Type
+		What kind of repository to return:
+		+ All: (default) Return all, irrespective of type
+		+ V2: Only return classic repositories, as would be returned by Get-PSRepository
+		+ V3: Only return modern repositories, as would be returned by Get-PSResourceRepository
+	
+	.EXAMPLE
+		PS C:\> Get-PSFRepository
+
+		List all available repositories.
+	#>
 	[CmdletBinding()]
 	Param (
+		[PsfArgumentCompleter('PSFramework.NuGet.Repository')]
 		[string[]]
 		$Name = '*',
 
@@ -21,9 +51,10 @@
 					Type       = 'V3'
 					Status     = 'OK'
 					Trusted    = $repository.Trusted
-					Priority   = $repository.Priority
+					Priority   = Get-PSFConfigValue -FullName "PSFramework.NuGet.Repositories.$($repository.Name).Priority" -Fallback $repository.Priority
 					Uri        = $repository.Uri
 					Object     = $repository
+					Credential = Get-PSFConfigValue -FullName "PSFramework.NuGet.Repositories.$($repository.Name).Credential"
 				}
 			}
 		}
@@ -42,6 +73,7 @@
 					Priority   = Get-PSFConfigValue -FullName "PSFramework.NuGet.Repositories.$($repository.Name).Priority" -Fallback 100
 					Uri        = $repository.SourceLocation
 					Object     = $repository
+					Credential = Get-PSFConfigValue -FullName "PSFramework.NuGet.Repositories.$($repository.Name).Credential"
 				}
 			}
 		}

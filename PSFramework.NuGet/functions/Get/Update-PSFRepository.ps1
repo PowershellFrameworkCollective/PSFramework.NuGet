@@ -45,7 +45,17 @@
 				$Configured
 			)
 
+			$supportedTypes = 'Any', 'Update', 'All', 'V2', 'V2Preferred', 'V3'
+
 			foreach ($configuredRepo in $Configured) {
+				# Incomplete configurations are ignored (e.g. just storing credentials)
+				if (-not $configuredRepo.Type -or -not $configuredRepo.Uri) { continue }
+				
+				if ($configuredRepo.Type -notin $supportedTypes) {
+					Write-PSFMessage -Level Warning -String 'Update-PSFRepository.Error.InvalidType' -StringValues $configuredRepo.Type, ($supportedTypes -join ', ')
+					continue
+				}
+
 				$matching = $Actual | Where-Object Name -EQ $configuredRepo._Name
 				$shouldExist = -not ($configuredRepo.PSObject.Properties.Name -contains 'Present' -and -not $configuredRepo.Present)
 
