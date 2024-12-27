@@ -159,6 +159,12 @@
 						$TargetPath
 					)
 
+					<#
+					Inherited Variables:
+					- $Path - Where the modules to publish lie
+					- $Force - Whether to overwrite/redeploy modules that already exist in that path in that version
+					#>
+
 					$PSDefaultParameterValues['Write-PSFMessage:ModuleName'] = 'PSFramework.NuGet'
 					$PSDefaultParameterValues['Write-PSFMessage:FunctionName'] = 'Publish-StagingModule'
 
@@ -171,9 +177,37 @@
 					}
 
 					$publishCommon = @{
-						ComputerName = $env:COMPUTERNAME
+						ComputerName = $TargetPath.ComputerName
 					}
+
 					$oldSuffix = "old_$(Get-Random -Minimum 100 -Maximum 999)"
+					$anyFailed = $false
+
+					#region Prepare Step: Create a staging directory on the remote host
+					# This allows us to minimize the cutover time, when replacing an existing module
+					$stagingDirectory = Invoke-Command -Session $TargetPath.Session.Session -ScriptBlock {
+						$tempDir = $env:TEMP
+						if (-not $tempDir) {
+							$localAppData = $env:LOCALAPPDATA
+							if (-not $localAppData -and -not $IsLinux -and -not $IsMacOS) { $localAppData = [Environment]::GetFolderPath("LocalApplicationData") }
+							if (-not $localAppData -and $Env:XDG_CONFIG_HOME) {$localAppData = $Env:XDG_CONFIG_HOME }
+							if (-not $localAppData) { $localAppData = Join-Path -Path $HOME -ChildPath '.config' }
+							$tempDir = Join-Path -Path $localAppData -ChildPath 'Temp'
+						}
+						if (-not (Test-Path -Path $tempDir)) {
+							try { $null = New-Item -Path $tempDir -ItemType Directory -Force -ErrorAction Stop }
+							catch {
+								[PSCustomObject]@{
+									Success = $false
+									Path = ''
+									Error = $_
+								}
+							}
+						}
+
+					}
+					#endregion Prepare Step: Create a staging directory on the remote host
+
 					throw "Not Refitted to work remotely yet!"
 		
 					foreach ($module in Get-ChildItem -Path $Path) {
@@ -187,11 +221,12 @@
 		
 								$testPath = Join-Path -Path $destination.Path -ChildPath "$($module.Name)/$($version.Name)/$($module.DirectoryName).psd1"
 								$alreadyExists = Invoke-Command -Session $TargetPath.Session.Session -ScriptBlock {
-									Test-Path -Path $using:testPath
-								}
+									param ($TestPath)
+									Test-Path -Path $TestPath
+								} -ArgumentList $testPath
 
 								if ($alreadyExists -and -not $Force) {
-									Write-PSFMessage -String 'Publish-StagingModule.Skipping.AlreadyExists' -StringValues $module.Name, $version.Name
+									Write-PSFMessage -String 'Publish-StagingModule.Remote.Skipping.AlreadyExists' -StringValues $TargetPath.ComputerName, $module.Name, $version.Name -Target ("$($module.Name) ($($version.Name))")
 									continue
 								}
 				
@@ -200,11 +235,25 @@
 				
 								# Rename old version
 								if ($alreadyExists) {
-									Invoke-PSFProtectedCommand -ActionString 'Publish-StagingModule.Deploying.RenameOld' -ActionStringValues $module.Name, $version.Name -Target $TargetPath -ScriptBlock {
-										Rename-Item -LiteralPath $targetVersionDirectory -NewName "$($version.Name)_$oldSuffix" -Force -ErrorAction Stop
-									} -PSCmdlet $Cmdlet -EnableException $killIt -Continue -ErrorEvent {
-										$result = New-PublishResult @publishCommon -Success $false -Message "Failed to rename old version: $_"
-										$PSCmdlet.WriteObject($result, $true)
+									Write-PSFMessage -String 'Publish-StagingModule.Remote.Deploying.RenameOld' -StringValues $TargetPath.ComputerName, $module.Name, $version.Name -Target ("$($module.Name) ($($version.Name))"), $testPath
+									$renameResult = Invoke-Command -Session $TargetPath.Session.Session -ScriptBlock {
+										param ($Path, $NewName)
+										try {
+											Rename-Item -LiteralPath $Path -NewName $NewName -ErrorAction Stop -Force
+											[PSCustomObject]@{ Success = $true; Error = $null }
+										}
+										catch {
+											[PSCustomObject]@{ Success = $true; Error = $null }
+										}
+									} -ArgumentList $targetVersionDirectory, "$($version.Name)_$oldSuffix"
+									if ($renameResult.Success) {
+										Write-PSFMessage -String 'Publish-StagingModule.Remote.Deploying.RenameOld.Success' -StringValues $TargetPath.ComputerName, $module.Name, $version.Name -Target ("$($module.Name) ($($version.Name))"), $testPath
+									}
+									else {
+										Write-PSFMessage -Level Warning -String 'Publish-StagingModule.Remote.Deploying.RenameOld.Success' -StringValues $TargetPath.ComputerName, $module.Name, $version.Name -Target ("$($module.Name) ($($version.Name))"), $testPath -ErrorRecord $renameResult.Error
+										$anyFailed = $true
+										New-PublishResult @publishCommon -Success $false -Message "Failed to rename old version: $($renameResult.Error)"
+										continue
 									}
 								}
 			
@@ -237,6 +286,11 @@
 							}
 						}
 					}
+				
+					$__PSF_Workflow.Data.Completed[$TargetPath.ComputerName] = $true
+					if ($anyFailed) { $__PSF_Workflow.Data.Failed[$TargetPath.ComputerName] = $true }
+					else { $__PSF_Workflow.Data.Success[$TargetPath.ComputerName] = $true }
+					$null = $__PSF_Workflow.Data.InProgress.TryRemove($TargetPath.ComputerName, [ref]$null)
 				}
 				#endregion Worker Code
 
