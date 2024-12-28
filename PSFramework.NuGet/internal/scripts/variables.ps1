@@ -8,3 +8,6 @@ $script:psget = @{
 }
 #>
 $script:psget = @{ }
+
+# What paths are available for Install-PSFModule's "-Scope" parameter
+$script:moduleScopes = @{ }

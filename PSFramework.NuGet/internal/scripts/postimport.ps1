@@ -27,3 +27,6 @@ $moduleRoot = Split-Path (Split-Path $PSScriptRoot)
 
 # Load License
 "$moduleRoot\internal\scripts\license.ps1"
+
+# Load Module Scopes
+(Get-ChildItem "$moduleRoot\internal\moduleScopes\*.ps1" -ErrorAction Ignore).FullName

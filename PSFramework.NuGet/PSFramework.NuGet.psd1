@@ -41,6 +41,7 @@
 	# Functions to export from this module
 	FunctionsToExport = @(
 		'Find-PSFModule'
+		'Get-PSFModuleScope'
 		'Get-PSFModuleSignature'
 		'Get-PSFPowerShellGet'
 		'Get-PSFRepository'
@@ -48,6 +49,7 @@
 		'Install-PSFPowerShellGet'
 		'Publish-PSFModule'
 		'Publish-PSFResourceModule'
+		'Register-PSFModuleScope'
 		'Save-PSFModule'
 		'Save-PSFPowerShellGet'
 		'Save-PSFResourceModule'

@@ -48,6 +48,41 @@
             </TableControl>
         </View>
 
+        <!-- PSFramework.NuGet.ModulePath -->
+        <View>
+            <Name>PSFramework.NuGet.ModulePath</Name>
+            <ViewSelectedBy>
+                <TypeName>PSFramework.NuGet.ModulePath</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Name</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Type</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Description</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>Path</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
         <!-- PSFramework.NuGet.PublishResult -->
         <View>
             <Name>PSFramework.NuGet.PublishResult</Name>
