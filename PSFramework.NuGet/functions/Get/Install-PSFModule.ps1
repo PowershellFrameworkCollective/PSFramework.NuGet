@@ -57,9 +57,25 @@
 	)
 	
 	begin {
-		
+		throw "Not implemented yet!"
+
+		# Resolution only happens to early detect impossible parameterization. Will be called again in Save-PSFModule.
+		$null = Resolve-Repository -Name $Repository -Type $Type -Cmdlet $PSCmdlet # Terminates if no repositories found
+		$managedSessions = New-ManagedSession -ComputerName $ComputerName -Credential $RemotingCredential -Cmdlet $PSCmdlet -Type Temporary
+		if ($ComputerName -and -not $managedSessions) {
+			Stop-PSFFunction -String 'Install-PSFModule.Error.NoComputerValid' -EnableException ($ErrorActionPreference -eq 'Stop') -Cmdlet $PSCmdlet
+			return
+		}
+		$resolvedPaths = Resolve-ModuleScopePath -Scope $Scope -ManagedSession $managedSessions -TargetHandling Any -Cmdlet $PSCmdlet # Errors for bad paths, terminates if no path
+
+		# Used to declare variable in the current scope, to prevent variable lookup snafus when det
+		$command = $null
+		$saveParam = $PSBoundParameters | ConvertTo-PSFHashtable -ReferenceCommand Save-PSFModule -Exclude ComputerName, RemotingCredential
+		$saveParam.Path = '<placeholder>' # Meet Parameterset requirements
 	}
 	process {
+		if (Test-PSFFunctionInterrupt) { return }
+
 		#TODO: Implement
 	}
 	end {

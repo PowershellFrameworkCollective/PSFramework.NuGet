@@ -99,6 +99,10 @@
 		Takes the output of Get-Module, Find-Module, Find-PSResource and Find-PSFModule, to specify the exact version and name of the module.
 		Even when providing a locally available version, the module will still be downloaded from the repositories chosen.
 
+	.PARAMETER PathInternal
+		For internal use only.
+		Used to pass scope-based path resolution from Install-PSFModule into Save-PSFModule.
+
 	.PARAMETER WhatIf
 		If this switch is enabled, no actions are performed but informational messages will be displayed that explain what would happen if the command were to run.
 	
@@ -199,17 +203,25 @@
 
 		[Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = 'ByObject')]
 		[object[]]
-		$InputObject
+		$InputObject,
+
+		[Parameter(DontShow = $true)]
+		$PathInternal
 	)
 	
 	begin {
 		$repositories = Resolve-Repository -Name $Repository -Type $Type -Cmdlet $PSCmdlet # Terminates if no repositories found
-		$managedSessions = New-ManagedSession -ComputerName $ComputerName -Credential $RemotingCredential -Cmdlet $PSCmdlet -Type Temporary
-		if ($ComputerName -and -not $managedSessions) {
-			Stop-PSFFunction -String 'Save-PSFModule.Error.NoComputerValid' -EnableException ($ErrorActionPreference -eq 'Stop') -Cmdlet $PSCmdlet
-			return
+		if ($PathInternal) {
+			$resolvedPaths = $PathInternal
 		}
-		$resolvedPaths = Resolve-RemotePath -Path $Path -ComputerName $managedSessions.Session -ManagedSession $managedSessions -TargetHandling Any -Cmdlet $PSCmdlet # Errors for bad paths, terminates if no path
+		else {
+			$managedSessions = New-ManagedSession -ComputerName $ComputerName -Credential $RemotingCredential -Cmdlet $PSCmdlet -Type Temporary
+			if ($ComputerName -and -not $managedSessions) {
+				Stop-PSFFunction -String 'Save-PSFModule.Error.NoComputerValid' -EnableException ($ErrorActionPreference -eq 'Stop') -Cmdlet $PSCmdlet
+				return
+			}
+			$resolvedPaths = Resolve-RemotePath -Path $Path -ComputerName $managedSessions.Session -ManagedSession $managedSessions -TargetHandling Any -Cmdlet $PSCmdlet # Errors for bad paths, terminates if no path
+		}
 		
 		$tempDirectory = New-PSFTempDirectory -Name Staging -ModuleName PSFramework.NuGet
 	}
@@ -229,7 +241,10 @@
 			Publish-StagingModule -Path $tempDirectory -TargetPath $resolvedPaths -Force:$Force -Cmdlet $PSCmdlet -ThrottleLimit $ThrottleLimit
 		}
 		finally {
-			$managedSessions | Where-Object Type -EQ 'Temporary' | ForEach-Object Session | Remove-PSSession
+			# Cleanup Managed sessions only if created locally. With -PathInternal, managed sessions are managed by the caller.
+			if (-not $PathInternal) {
+				$managedSessions | Where-Object Type -EQ 'Temporary' | ForEach-Object Session | Remove-PSSession
+			}
 			Remove-PSFTempItem -Name Staging -ModuleName PSFramework.NuGet
 		}
 	}
