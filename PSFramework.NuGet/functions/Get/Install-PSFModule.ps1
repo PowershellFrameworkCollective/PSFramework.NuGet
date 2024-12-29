@@ -1,5 +1,4 @@
-﻿function Install-PSFModule
-{
+﻿function Install-PSFModule {
 	[CmdletBinding(PositionalBinding = $false, DefaultParameterSetName = 'ByName', SupportsShouldProcess = $true)]
 	Param (
 		[Parameter(Mandatory = $true, Position = 0, ParameterSetName = 'ByName')]
@@ -57,16 +56,13 @@
 		$InputObject
 	)
 	
-	begin
-	{
+	begin {
 		
 	}
-	process
-	{
+	process {
 		#TODO: Implement
 	}
-	end
-	{
+	end {
 	
 	}
 }
