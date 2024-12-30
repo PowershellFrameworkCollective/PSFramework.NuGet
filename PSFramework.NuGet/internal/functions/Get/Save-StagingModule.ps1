@@ -32,6 +32,9 @@
 		Defaults to: $false
 		Default can be configured under the 'PSFramework.NuGet.Install.AuthenticodeSignature.Check' setting.
 	
+	.PARAMETER TrustRepository
+		Whether we should trust the repository installed from and NOT ask users for confirmation.
+	
 	.PARAMETER Cmdlet
 		The $PSCmdlet variable of the calling command, used to ensure errors happen within the scope of the caller, hiding this internal helper command from the user.
 	
@@ -40,6 +43,7 @@
 	
 		Downloads modules from a repository into a specified, local path.
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "")]
 	[CmdletBinding()]
 	param (
 		[object[]]
@@ -61,7 +65,10 @@
 		[switch]
 		$AuthenticodeCheck,
 
-		$Cmdlet = $PSCmdlet 
+		[switch]
+		$TrustRepository,
+
+		$Cmdlet = $PSCmdlet
 	)
 	begin {
 		#region Implementing Functions
@@ -187,7 +194,10 @@
 				$SkipDependency,
 
 				[switch]
-				$AuthenticodeCheck
+				$AuthenticodeCheck,
+
+				[switch]
+				$TrustRepository
 			)
 
 			Write-PSFMessage -String 'Save-StagingModule.SavingV3.Start' -StringValues $Item.Name, $Item.Version, $Repository.Name, $Repository.Type -Target $Item
@@ -276,7 +286,7 @@
 			$saveResults = foreach ($repository in $Repositories | Set-PSFObjectOrder -Property Priority, '>Type') {
 				$saveResult = switch ($repository.Type) {
 					V2 { Save-StagingModuleV2 -Repository $repository -Item $installItem @common }
-					V3 { Save-StagingModuleV3 -Repository $repository -Item $installItem @common }
+					V3 { Save-StagingModuleV3 -Repository $repository -Item $installItem -TrustRepository:$TrustRepository @common }
 					default { Stop-PSFFunction -String 'Save-StagingModule.Error.UnknownRepoType' -StringValues $repository.Type, $repository.Name -Target $repository -Cmdlet $Cmdlet -EnableException $true }
 				}
 				if ($saveResult.Success) { continue item }

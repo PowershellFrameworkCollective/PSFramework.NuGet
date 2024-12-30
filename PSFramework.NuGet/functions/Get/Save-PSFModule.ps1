@@ -246,7 +246,7 @@
 				return
 			}
 			
-			Save-StagingModule -InstallData $installData -Path $tempDirectory -Repositories $repositories -Cmdlet $Cmdlet -Credential $Credential -SkipDependency:$SkipDependency -AuthenticodeCheck:$AuthenticodeCheck
+			Save-StagingModule -InstallData $installData -Path $tempDirectory -Repositories $repositories -Cmdlet $Cmdlet -Credential $Credential -SkipDependency:$SkipDependency -AuthenticodeCheck:$AuthenticodeCheck -TrustRepository:$TrustRepository
 			Publish-StagingModule -Path $tempDirectory -TargetPath $resolvedPaths -Force:$Force -Cmdlet $Cmdlet -ThrottleLimit $ThrottleLimit
 		}
 		finally {

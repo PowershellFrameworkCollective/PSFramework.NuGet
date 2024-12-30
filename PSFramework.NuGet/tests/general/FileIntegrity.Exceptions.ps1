@@ -31,7 +31,7 @@ $global:MayContainCommand = @{
 	"Write-Verbose" = @()
 	"Write-Warning" = @()
 	"Write-Error"  = @()
-	"Write-Output" = @()
+	"Write-Output" = @('Publish-StagingModuleRemote.ps1')
 	"Write-Information" = @()
 	"Write-Debug" = @()
 }

@@ -93,6 +93,12 @@
 		The module to install.
 		Takes the output of Get-Module, Find-Module, Find-PSResource and Find-PSFModule, to specify the exact version and name of the module.
 		Even when providing a locally available version, the module will still be downloaded from the repositories chosen.
+
+	.PARAMETER WhatIf
+		If this switch is enabled, no actions are performed but informational messages will be displayed that explain what would happen if the command were to run.
+	
+	.PARAMETER Confirm
+		If this switch is enabled, you will be prompted for confirmation before executing any operations that change state.
 	
 	.EXAMPLE
 		PS C:\> Install-PSFModule -Name EntraAuth
@@ -179,7 +185,7 @@
 			Stop-PSFFunction -String 'Install-PSFModule.Error.NoComputerValid' -EnableException $killIt -Cmdlet $PSCmdlet
 			return
 		}
-		$resolvedPaths = Resolve-ModuleScopePath -Scope $Scope -ManagedSession $managedSessions -TargetHandling Any -Cmdlet $PSCmdlet # Errors for bad paths, terminates if no path
+		$resolvedPaths = Resolve-ModuleScopePath -Scope $Scope -ManagedSession $managedSessions -TargetHandling Any -PathHandling Any -Cmdlet $PSCmdlet # Errors for bad paths, terminates if no path
 
 		# Used to declare variable in the current scope, to prevent variable lookup snafus when det
 		$command = $null

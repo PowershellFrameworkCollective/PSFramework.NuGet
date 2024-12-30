@@ -25,13 +25,19 @@
 		- V2: Will only register on V2. V3 - if present and configured - will be unregistered.
 		- V2Preferred: Will only register on V2. If V2 does not exist, existing V3 repositories will be allowed.
 		- V3: Will only register on V3. If V2 is present, it will be unregistered, irrespective of whether V3 is available.
+
+	.PARAMETER WhatIf
+		If this switch is enabled, no actions are performed but informational messages will be displayed that explain what would happen if the command were to run.
+	
+	.PARAMETER Confirm
+		If this switch is enabled, you will be prompted for confirmation before executing any operations that change state.
 	
 	.EXAMPLE
 		PS C:\> Update-PSFRepository
 		
 		Executes configured repository settings, creating, updating and deleting repositories as defined.
 	#>
-	[CmdletBinding()]
+	[CmdletBinding(SupportsShouldProcess = $true)]
 	Param (
 	
 	)
@@ -233,7 +239,7 @@
 		}
 		
 		function Remove-Repository {
-			[CmdletBinding()]
+			[CmdletBinding(SupportsShouldProcess = $true)]
 			param (
 				$Change
 			)
@@ -253,9 +259,9 @@
 		}
 		
 		function Set-Repository {
-			[CmdletBinding()]
+			[CmdletBinding(SupportsShouldProcess = $true)]
 			param (
-				$Change	
+				$Change
 			)
 
 			$param = @{
@@ -281,10 +287,10 @@
 						$param.Uri = $Change.Changes.Uri
 					}
 					if ($Change.Changes.Keys -contains 'Priority') {
-						$param.Priority = $Change.Changes.Priority 
+						$param.Priority = $Change.Changes.Priority
 					}
 					if ($Change.Changes.Keys -contains 'Trusted') {
-						$param.Trusted = $Change.Changes.Trusted 
+						$param.Trusted = $Change.Changes.Trusted
 					}
 
 					Invoke-PSFProtectedCommand -ActionString 'Update-PSFRepository.Repository.Update' -ActionStringValues $change.Actual.Type, $Change.Actual.Name -ScriptBlock {

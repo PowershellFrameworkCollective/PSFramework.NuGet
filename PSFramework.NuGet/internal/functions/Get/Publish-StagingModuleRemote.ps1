@@ -24,9 +24,6 @@
 		Redeploy a module that already exists in the target path.
 		By default it will skip modules that do already exist in the target path.
 	
-	.PARAMETER Cmdlet
-		The $PSCmdlet variable of the calling command, used to ensure errors happen within the scope of the caller, hiding this internal helper command from the user.
-	
 	.EXAMPLE
 		PS C:\> Publish-StagingModuleRemote -Path $stagingDirectory -TargetPath $targets -Force:$Force -Cmdlet $PSCmdlet
 
@@ -45,9 +42,7 @@
 		$ThrottleLimit = 5,
 
 		[switch]
-		$Force,
-
-		$Cmdlet
+		$Force
 	)
 
 	begin {

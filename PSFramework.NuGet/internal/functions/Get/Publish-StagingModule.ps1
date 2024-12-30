@@ -59,7 +59,7 @@
 			Publish-StagingModuleLocal -Path $Path -TargetPath $localPaths -Force:$Force -Cmdlet $Cmdlet
 		}
 		if ($remotePaths) {
-			Publish-StagingModuleRemote -Path $Path -TargetPath $remotePaths -ThrottleLimit $ThrottleLimit -Force:$Force -Cmdlet $Cmdlet
+			Publish-StagingModuleRemote -Path $Path -TargetPath $remotePaths -ThrottleLimit $ThrottleLimit -Force:$Force
 		}
 	}
 }

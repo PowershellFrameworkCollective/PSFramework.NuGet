@@ -63,6 +63,7 @@
 		Each computer is considered successful, if one of the two paths exist on it.
 		This command will continue unbothered, so long as at least one computer is successful.
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", "")]
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $true)]

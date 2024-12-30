@@ -70,6 +70,12 @@
 		The resource module to install.
 		Takes the output of Get-Module, Find-Module, Find-PSResource and Find-PSFModule, to specify the exact version and name of the resource module.
 		Even when providing a locally available version, the resource module will still be downloaded from the repositories chosen.
+
+	.PARAMETER WhatIf
+		If this switch is enabled, no actions are performed but informational messages will be displayed that explain what would happen if the command were to run.
+	
+	.PARAMETER Confirm
+		If this switch is enabled, you will be prompted for confirmation before executing any operations that change state.
 	
 	.EXAMPLE
 		PS C:\> Save-PSFResourceModule -Name Psmd.Templates.MiniModule -Path .

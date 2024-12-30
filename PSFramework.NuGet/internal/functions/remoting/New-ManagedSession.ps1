@@ -42,6 +42,9 @@
 		Establishes sessions to all targets in $ComputerName if needed, using the credentials in $RemotingCredential (if any).
 		The newly-established sessions will be considered temporary and should be purged before the task is done.
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", "")]
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSReviewUnusedParameter", "")]
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $true)]

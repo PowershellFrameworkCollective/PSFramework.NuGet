@@ -55,7 +55,7 @@
 					Success = $true
 					Error   = $null
 					Data    = $result
-				} 
+				}
 			}
 			catch {
 				[PSCustomObject]@{

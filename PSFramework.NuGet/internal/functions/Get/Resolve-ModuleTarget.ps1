@@ -59,6 +59,7 @@
 	)
 	begin {
 		function New-ModuleTarget {
+			[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
 			[CmdletBinding()]
 			param (
 				$Object,

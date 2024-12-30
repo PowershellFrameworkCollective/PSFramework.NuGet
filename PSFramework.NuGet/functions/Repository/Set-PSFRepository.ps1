@@ -52,6 +52,7 @@
 		Assigns for the repository "AzDevOps" the credentials stored in $cred.
 		All subsequent PSGet calls through this module will be made using those credentials.
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
 	[CmdletBinding(PositionalBinding = $false)]
 	param (
 		[Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
