@@ -91,7 +91,7 @@
 		$code = {
 			param ($Data)
 
-			$pathResults = foreach ($path in $Data.Paths) {
+			$pathResults = foreach ($path in $Data.Path) {
 				try {
 					$resolvedPaths = Resolve-Path -Path $path -ErrorAction Stop
 				}
@@ -141,7 +141,7 @@
 		#endregion Implementing Code
 
 		# Passing a single array-argument as a hashtable is more reliable
-		$data = @{ Paths = $Path; PathHandling = $PathHandling }
+		$data = @{ Path = $Path; PathHandling = $PathHandling }
 	}
 	process {
 		#region Collect Test-Results
