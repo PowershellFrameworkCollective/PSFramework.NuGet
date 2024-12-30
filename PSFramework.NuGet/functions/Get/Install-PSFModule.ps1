@@ -59,11 +59,14 @@
 	begin {
 		throw "Not implemented yet!"
 
+		$killIt = $ErrorActionPreference -eq 'Stop'
+		$cleanedUp = $false
+
 		# Resolution only happens to early detect impossible parameterization. Will be called again in Save-PSFModule.
 		$null = Resolve-Repository -Name $Repository -Type $Type -Cmdlet $PSCmdlet # Terminates if no repositories found
 		$managedSessions = New-ManagedSession -ComputerName $ComputerName -Credential $RemotingCredential -Cmdlet $PSCmdlet -Type Temporary
 		if ($ComputerName -and -not $managedSessions) {
-			Stop-PSFFunction -String 'Install-PSFModule.Error.NoComputerValid' -EnableException ($ErrorActionPreference -eq 'Stop') -Cmdlet $PSCmdlet
+			Stop-PSFFunction -String 'Install-PSFModule.Error.NoComputerValid' -EnableException $killIt -Cmdlet $PSCmdlet
 			return
 		}
 		$resolvedPaths = Resolve-ModuleScopePath -Scope $Scope -ManagedSession $managedSessions -TargetHandling Any -Cmdlet $PSCmdlet # Errors for bad paths, terminates if no path
@@ -76,9 +79,35 @@
 	process {
 		if (Test-PSFFunctionInterrupt) { return }
 
-		#TODO: Implement
+		#region Start Nested Save-PSFModule
+		if (-not $command) {
+			$command = { Save-PSFModule @saveParam -PathInternal $resolvedPaths -Cmdlet $PSCmdlet -ErrorAction $ErrorActionPreference }.GetSteppablePipeline()
+			try { $command.Begin((-not $Name)) }
+			catch {
+				if (-not $cleanedUp -and $managedSessions) { $managedSessions | Where-Object Type -EQ 'Temporary' | ForEach-Object Session | Remove-PSSession }
+				$cleanedUp = $true
+				Stop-PSFFunction -String 'Install-PSFModule.Error.Setup' -ErrorRecord $_ -EnableException $killIt -Cmdlet $PSCmdlet
+				return
+			}
+		}
+		#endregion Start Nested Save-PSFModule
+
+		#region Execute Process
+		try {
+			if ($Name) { $command.Process() }
+			else { $command.Process($InputObject) }
+		}
+		catch {
+			if (-not $cleanedUp -and $managedSessions) { $managedSessions | Where-Object Type -EQ 'Temporary' | ForEach-Object Session | Remove-PSSession }
+			$cleanedUp = $true
+			Stop-PSFFunction -String 'Install-PSFModule.Error.Installation' -ErrorRecord $_ -EnableException $killIt -Cmdlet $PSCmdlet
+			return
+		}
+		#endregion Execute Process
 	}
 	end {
-	
+		if (-not $cleanedUp -and $managedSessions) { $managedSessions | Where-Object Type -EQ 'Temporary' | ForEach-Object Session | Remove-PSSession }
+		if (Test-PSFFunctionInterrupt) { return }
+		$null = $command.End()
 	}
 }

@@ -103,6 +103,10 @@
 		For internal use only.
 		Used to pass scope-based path resolution from Install-PSFModule into Save-PSFModule.
 
+	.PARAMETER Cmdlet
+		The $PSCmdlet variable of the calling command, used to ensure errors happen within the scope of the caller, hiding this command from the user.
+		Should be used when trying to hide Save-PSFModule - e.g. when called from Install-PSFModule.
+
 	.PARAMETER WhatIf
 		If this switch is enabled, no actions are performed but informational messages will be displayed that explain what would happen if the command were to run.
 	
@@ -206,21 +210,26 @@
 		$InputObject,
 
 		[Parameter(DontShow = $true)]
-		$PathInternal
+		$PathInternal,
+
+		[Parameter(DontShow = $true)]
+		$Cmdlet = $PSCmdlet
 	)
 	
 	begin {
-		$repositories = Resolve-Repository -Name $Repository -Type $Type -Cmdlet $PSCmdlet # Terminates if no repositories found
+		$repositories = Resolve-Repository -Name $Repository -Type $Type -Cmdlet $Cmdlet # Terminates if no repositories found
 		if ($PathInternal) {
 			$resolvedPaths = $PathInternal
+			$shouldProcessMessage = "Saving modules to $(@($PathInternal)[0].Scope)"
 		}
 		else {
-			$managedSessions = New-ManagedSession -ComputerName $ComputerName -Credential $RemotingCredential -Cmdlet $PSCmdlet -Type Temporary
+			$shouldProcessMessage = "Saving modules to $Path"
+			$managedSessions = New-ManagedSession -ComputerName $ComputerName -Credential $RemotingCredential -Cmdlet $Cmdlet -Type Temporary
 			if ($ComputerName -and -not $managedSessions) {
-				Stop-PSFFunction -String 'Save-PSFModule.Error.NoComputerValid' -EnableException ($ErrorActionPreference -eq 'Stop') -Cmdlet $PSCmdlet
+				Stop-PSFFunction -String 'Save-PSFModule.Error.NoComputerValid' -EnableException ($ErrorActionPreference -eq 'Stop') -Cmdlet $Cmdlet
 				return
 			}
-			$resolvedPaths = Resolve-RemotePath -Path $Path -ComputerName $managedSessions.Session -ManagedSession $managedSessions -TargetHandling Any -Cmdlet $PSCmdlet # Errors for bad paths, terminates if no path
+			$resolvedPaths = Resolve-RemotePath -Path $Path -ComputerName $managedSessions.Session -ManagedSession $managedSessions -TargetHandling Any -Cmdlet $Cmdlet # Errors for bad paths, terminates if no path
 		}
 		
 		$tempDirectory = New-PSFTempDirectory -Name Staging -ModuleName PSFramework.NuGet
@@ -230,15 +239,15 @@
 
 		try {
 			$installData = switch ($PSCmdlet.ParameterSetName) {
-				ByObject { Resolve-ModuleTarget -InputObject $InputObject -Cmdlet $PSCmdlet }
-				ByName { Resolve-ModuleTarget -Name $Name -Version $Version -Prerelease:$Prerelease -Cmdlet $PSCmdlet }
+				ByObject { Resolve-ModuleTarget -InputObject $InputObject -Cmdlet $Cmdlet }
+				ByName { Resolve-ModuleTarget -Name $Name -Version $Version -Prerelease:$Prerelease -Cmdlet $Cmdlet }
 			}
-			if (-not $PSCmdlet.ShouldProcess(($installData.TargetName -join ', '), "Saving modules to $Path")) {
+			if (-not $Cmdlet.ShouldProcess(($installData.TargetName -join ', '), $shouldProcessMessage)) {
 				return
 			}
 			
-			Save-StagingModule -InstallData $installData -Path $tempDirectory -Repositories $repositories -Cmdlet $PSCmdlet -Credential $Credential -SkipDependency:$SkipDependency -AuthenticodeCheck:$AuthenticodeCheck
-			Publish-StagingModule -Path $tempDirectory -TargetPath $resolvedPaths -Force:$Force -Cmdlet $PSCmdlet -ThrottleLimit $ThrottleLimit
+			Save-StagingModule -InstallData $installData -Path $tempDirectory -Repositories $repositories -Cmdlet $Cmdlet -Credential $Credential -SkipDependency:$SkipDependency -AuthenticodeCheck:$AuthenticodeCheck
+			Publish-StagingModule -Path $tempDirectory -TargetPath $resolvedPaths -Force:$Force -Cmdlet $Cmdlet -ThrottleLimit $ThrottleLimit
 		}
 		finally {
 			# Cleanup Managed sessions only if created locally. With -PathInternal, managed sessions are managed by the caller.
