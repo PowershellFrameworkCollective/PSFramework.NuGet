@@ -1,5 +1,4 @@
-﻿function Publish-PSFModule
-{
+﻿function Publish-PSFModule {
 	[CmdletBinding(DefaultParameterSetName = 'ToRepository')]
 	Param (
 		[Parameter(Mandatory = $true)]
@@ -25,12 +24,13 @@
 		[string]
 		$ApiKey,
 
+		[Parameter(ParameterSetName = 'ToRepository')]
+		[switch]
+		$SkipDependenciesCheck,
+
 		[Parameter(Mandatory = $true, ParameterSetName = 'ToPath')]
 		[PsfDirectory]
 		$DestinationPath,
-
-		[switch]
-		$SkipDependenciesCheck,
 
 		[string[]]
 		$Tags,
@@ -45,12 +45,64 @@
 		$ProjectUri
 	)
 	
-	begin
-	{
+	begin {
+		#region Setup
+		$killIt = $ErrorActionPreference = 'Stop'
+		if ($Repository) {
+			# Resolve Repositories
+			Search-PSFPowerShellGet
+			$repositories = Resolve-Repository -Name $Repository -Type $Type -Cmdlet $PSCmdlet | Group-Object Name | ForEach-Object {
+				@($_.Group | Sort-Object Type -Descending)[0]
+			}
+		}
+		# Create Temp Directories
+		$workingDirectory = New-PSFTempDirectory -ModuleName PSFramework.NuGet -Name Publish.Work
+		$stagingDirectory = New-PSFTempDirectory -ModuleName PSFramework.NuGet -Name Publish.Staging
+
+		$commonPublish = @{
+			StagingDirectory = $stagingDirectory
+			Cmdlet           = $PSCmdlet
+			Continue         = $true
+			ContinueLabel    = 'repo'
+		}
+		if ($ApiKey) { $commonPublish.ApiKey = $ApiKey }
+		if ($Credential) { $commonPublish.Credential = $Credential }
+		if ($SkipDependenciesCheck) { $commonPublish.SkipDependenciesCheck = $SkipDependenciesCheck }
+		#endregion Setup
 	}
-	process
-	{
-		#TODO: Implement
+	process {
+		try {
+			foreach ($sourceModule in $Path) {
+				# Update Metadata per Parameter
+				$moduleData = Copy-Module -Path $sourceModule -Destination $workingDirectory -Cmdlet $PSCmdlet -Continue
+				Update-ModuleInformation -Module $moduleData -Tags $Tags -LicenseUri $LicenseUri -IconUri $IconUri -ProjectUri $ProjectUri -Cmdlet $PSCmdlet -Continue
+
+				# Case 1: Publish to Destination Path
+				if ($DestinationPath) {
+					Publish-ModuleToPath -Module $moduleData -Path $DestinationPath -Cmdlet $PSCmdlet
+					continue
+				}
+
+				# Case 2: Publish to Repository
+				:repo foreach ($repositoryObject in $repositories) {
+					switch ($repositoryObject.Type) {
+						V2 {
+							Publish-ModuleV2 @commonPublish -Module $moduleData -Repository $repositoryObject.Name 
+						}
+						V3 {
+							Publish-ModuleV3 @commonPublish -Module $moduleData -Repository $repositoryObject.Name 
+						}
+						default {
+							Stop-PSFFunction -String 'Publish-PSFModule.Error.UnexpectedRepositoryType' -StringValues $repositoryObject.Name, $repositoryObject.Type -Continue -Cmdlet $PSCmdlet -EnableException $killIt
+						}
+					}
+				}
+			}
+		}
+		finally {
+			# Cleanup Temp Directory
+			Remove-PSFTempItem -ModuleName PSFramework.NuGet -Name Publish.*
+		}
 	}
 }
 <#
