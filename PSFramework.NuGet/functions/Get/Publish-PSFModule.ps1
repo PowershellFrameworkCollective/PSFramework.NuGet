@@ -42,7 +42,13 @@
 		$IconUri,
 
 		[string]
-		$ProjectUri
+		$ProjectUri,
+
+		[string]
+		$ReleaseNotes,
+
+		[string]
+		$Prerelease
 	)
 	
 	begin {
@@ -75,7 +81,7 @@
 			foreach ($sourceModule in $Path) {
 				# Update Metadata per Parameter
 				$moduleData = Copy-Module -Path $sourceModule -Destination $workingDirectory -Cmdlet $PSCmdlet -Continue
-				Update-ModuleInformation -Module $moduleData -Tags $Tags -LicenseUri $LicenseUri -IconUri $IconUri -ProjectUri $ProjectUri -Cmdlet $PSCmdlet -Continue
+				Update-ModuleInformation -Module $moduleData -Tags $Tags -LicenseUri $LicenseUri -IconUri $IconUri -ProjectUri $ProjectUri -ReleaseNotes $ReleaseNotes -Prerelease $Prerelease -Cmdlet $PSCmdlet -Continue
 
 				# Case 1: Publish to Destination Path
 				if ($DestinationPath) {

@@ -27,6 +27,7 @@
 	# this module
 	RequiredModules   = @(
 		@{ ModuleName = 'PSFramework'; ModuleVersion = '1.12.346' }
+		@{ ModuleName = 'ConvertToPsd1'; ModuleVersion = '1.0.1'}
 	)
 	
 	# Assemblies that must be loaded prior to importing this module
