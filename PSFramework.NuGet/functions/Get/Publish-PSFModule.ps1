@@ -1,5 +1,5 @@
 ﻿function Publish-PSFModule {
-	[CmdletBinding(DefaultParameterSetName = 'ToRepository')]
+	[CmdletBinding(DefaultParameterSetName = 'ToRepository', SupportsShouldProcess = $true)]
 	Param (
 		[Parameter(Mandatory = $true)]
 		[PsfPath]
@@ -53,7 +53,7 @@
 	
 	begin {
 		#region Setup
-		$killIt = $ErrorActionPreference = 'Stop'
+		$killIt = $ErrorActionPreference -eq 'Stop'
 		if ($Repository) {
 			# Resolve Repositories
 			Search-PSFPowerShellGet
@@ -63,10 +63,8 @@
 		}
 		# Create Temp Directories
 		$workingDirectory = New-PSFTempDirectory -ModuleName PSFramework.NuGet -Name Publish.Work
-		$stagingDirectory = New-PSFTempDirectory -ModuleName PSFramework.NuGet -Name Publish.Staging
 
 		$commonPublish = @{
-			StagingDirectory = $stagingDirectory
 			Cmdlet           = $PSCmdlet
 			Continue         = $true
 			ContinueLabel    = 'repo'
@@ -93,10 +91,10 @@
 				:repo foreach ($repositoryObject in $repositories) {
 					switch ($repositoryObject.Type) {
 						V2 {
-							Publish-ModuleV2 @commonPublish -Module $moduleData -Repository $repositoryObject.Name 
+							Publish-ModuleV2 @commonPublish -Module $moduleData -Repository $repositoryObject 
 						}
 						V3 {
-							Publish-ModuleV3 @commonPublish -Module $moduleData -Repository $repositoryObject.Name 
+							Publish-ModuleV3 @commonPublish -Module $moduleData -Repository $repositoryObject 
 						}
 						default {
 							Stop-PSFFunction -String 'Publish-PSFModule.Error.UnexpectedRepositoryType' -StringValues $repositoryObject.Name, $repositoryObject.Type -Continue -Cmdlet $PSCmdlet -EnableException $killIt
