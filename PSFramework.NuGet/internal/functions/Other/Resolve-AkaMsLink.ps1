@@ -37,13 +37,13 @@
 		try { $null = Invoke-WebRequest -Uri $Name -MaximumRedirection 1 -ErrorAction Stop }
 		catch {
 			# Not doing a version check, since exact cut-over version between behaviors unknown
-			# PS ?+
-			if ($_.TargetObject.RequestUri.AbsoluteUri) {
-				$_.TargetObject.RequestUri.AbsoluteUri
-			}
 			# PS 5.1
-			else {
+			if ($_.TargetObject.Address.AbsoluteUri) {
 				$_.TargetObject.Address.AbsoluteUri
+			}
+			# PS ?+
+			else {
+				$_.TargetObject.RequestUri.AbsoluteUri
 			}
 		}
 	}
