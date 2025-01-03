@@ -79,7 +79,7 @@
 			foreach ($sourceModule in $Path) {
 				# Update Metadata per Parameter
 				$moduleData = Copy-Module -Path $sourceModule -Destination $workingDirectory -Cmdlet $PSCmdlet -Continue
-				Update-ModuleInformation -Module $moduleData -Tags $Tags -LicenseUri $LicenseUri -IconUri $IconUri -ProjectUri $ProjectUri -ReleaseNotes $ReleaseNotes -Prerelease $Prerelease -Cmdlet $PSCmdlet -Continue
+				Update-PSFModuleManifest -Path $moduleData.ManifestPath -Tags $Tags -LicenseUri $LicenseUri -IconUri $IconUri -ProjectUri $ProjectUri -ReleaseNotes $ReleaseNotes -Prerelease $Prerelease -Cmdlet $PSCmdlet -Continue
 
 				# Case 1: Publish to Destination Path
 				if ($DestinationPath) {
@@ -109,23 +109,3 @@
 		}
 	}
 }
-<#
-- Path
-- DestinationPath (-/V3)
-
-- Repository
-- Type
-- Credential
-- ApiKey
-
-- SkipAutopmaticTags (V2/-) - Disregard
-- Force (V2/-) - Disregard
-- SkipDependenciesCheck (-/V3) - Partial (only for V3, as V2 does not support)
-- SkipModuleManifestValidate (-/V3) - Always. Cheat to make V2 work out.
-
-# Will be implemented outside of the Get Commands
-- Tags (V2/-)
-- LicenseUri (V2/-)
-- IconUri (V2/-)
-- ProjectUri (V2/-)
-#>

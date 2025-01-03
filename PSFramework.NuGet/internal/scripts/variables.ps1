@@ -11,3 +11,6 @@ $script:psget = @{ }
 
 # What paths are available for Install-PSFModule's "-Scope" parameter
 $script:moduleScopes = @{ }
+
+# Static Override values provided when using Disable-ModuleCommand
+$script:ModuleCommandReturns = @{ }

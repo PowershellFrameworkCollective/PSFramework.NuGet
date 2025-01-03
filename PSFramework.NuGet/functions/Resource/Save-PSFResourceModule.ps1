@@ -136,30 +136,30 @@
 		try {
 			$saveParam = $PSBoundParameters | ConvertTo-PSFHashtable -ReferenceCommand Save-PSFModule -Exclude Path, ErrorAction
 			Invoke-PSFProtectedCommand -ActionString 'Save-PSFResourceModule.Downloading' -ActionStringValues ($Name -join ', ') -ScriptBlock {
-				Save-PSFModule @saveParam -Path $tempDirectory -ErrorAction Stop -WhatIf:$false -Confirm:$false
+				$null = Save-PSFModule @saveParam -Path $tempDirectory -ErrorAction Stop -WhatIf:$false -Confirm:$false
 			} -PSCmdlet $PSCmdlet -EnableException $killIt -WhatIf:$false -Confirm:$false
 			if (Test-PSFFunctionInterrupt) { return }
 
 			foreach ($pathEntry in $Path) {
 				foreach ($module in Get-ChildItem -Path $tempDirectory) {
-					foreach ($version in Get-ChildItem -LiteralPath $module.FullName) {
-						$dataPath = Join-Path -Path $version.FullName -ChildPath 'Resources'
+					foreach ($versionFolder in Get-ChildItem -LiteralPath $module.FullName) {
+						$dataPath = Join-Path -Path $versionFolder.FullName -ChildPath 'Resources'
 						if (-not (Test-Path -Path $dataPath)) {
-							Write-PSFMessage -String 'Save-PSFResourceModule.Skipping.InvalidResource' -StringValues $module.Name, $version.Name
+							Write-PSFMessage -String 'Save-PSFResourceModule.Skipping.InvalidResource' -StringValues $module.Name, $versionFolder.Name
 							continue
 						}
-						if (-not $PSCmdlet.ShouldProcess("$($module.Name) ($($version.Name))", "Deploy to $pathEntry")) {
+						if (-not $PSCmdlet.ShouldProcess("$($module.Name) ($($versionFolder.Name))", "Deploy to $pathEntry")) {
 							continue
 						}
 
-						foreach ($item in Get-ChildItem -LiteralPath $version.FullName) {
+						foreach ($item in Get-ChildItem -LiteralPath $dataPath) {
 							$targetPath = Join-Path -Path $pathEntry -ChildPath $item.Name
 							if (-not $Force -and (Test-path -Path $targetPath)) {
-								Write-PSFMessage -String 'Save-PSFResourceModule.Skipping.AlreadyExists' -StringValues $module.Name, $version.Name, $item.Name, $pathEntry
+								Write-PSFMessage -String 'Save-PSFResourceModule.Skipping.AlreadyExists' -StringValues $module.Name, $versionFolder.Name, $item.Name, $pathEntry
 								continue
 							}
 
-							Invoke-PSFProtectedCommand -ActionString 'Save-PSFResourceModule.Deploying' -ActionStringValues $module.Name, $version.Name, $item.Name, $pathEntry -ScriptBlock {
+							Invoke-PSFProtectedCommand -ActionString 'Save-PSFResourceModule.Deploying' -ActionStringValues $module.Name, $versionFolder.Name, $item.Name, $pathEntry -ScriptBlock {
 								Move-Item -LiteralPath $item.FullName -Destination $pathEntry -Force -ErrorAction Stop -Confirm:$false -WhatIf:$false
 							} -Target $item.Name -PSCmdlet $PSCmdlet -EnableException $killIt -Continue -Confirm:$false -WhatIf:$false
 						}

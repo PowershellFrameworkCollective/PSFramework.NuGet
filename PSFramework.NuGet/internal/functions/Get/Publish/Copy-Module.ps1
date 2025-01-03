@@ -58,7 +58,7 @@
 		}
 
 		$destinationPath = Join-Path -Path $Destination -ChildPath $moduleName
-		try { Copy-Item -Path "$($sourceDirectoryPath.Trim('\/'))\*" Destination $destinationPath -Recurse -Force -ErrorAction Stop }
+		try { Copy-Item -Path "$($sourceDirectoryPath.Trim('\/'))\*" -Destination $destinationPath -Recurse -Force -ErrorAction Stop }
 		catch {
 			Stop-PSFFunction -String 'Copy-Module.Error.StagingFolderCopy' -StringValues $Path -Target $Path @stopCommon -ErrorRecord $_
 			return
@@ -67,8 +67,9 @@
 
 		$hashtableAst = $ast.EndBlock.Statements[0].PipelineElements[0].Expression
 		[PSCustomObject]@{
-			Name            = $moduleNamee
+			Name            = $moduleName
 			Path            = $destinationPath
+			ManifestPath    = Join-Path -Path $destinationPath -ChildPath "$moduleName.psd1"
 			SourcePath      = $sourceDirectoryPath
 			Author          = @($hashtableAst.KeyValuePairs).Where{ $_.Item1.Value -eq 'Author' }.Item2.PipelineElements.Expression.Value
 			Version         = @($hashtableAst.KeyValuePairs).Where{ $_.Item1.Value -eq 'ModuleVersion' }.Item2.PipelineElements.Expression.Value

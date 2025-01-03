@@ -23,13 +23,8 @@
 		$Cmdlet = $PSCmdlet
 	)
 	process {
-		<#
-		TODO:
-		+ Implement SkipModuleManifestValidate?
-		+ Test Publish to local with & without dependencies
-		+ Test publish with fake dependencies
-		#>
 		$killIt = $ErrorActionPreference -eq 'Stop'
+		
 		$commonPublish = @{
 			Repository = $Repository.Name
 			Confirm = $false
@@ -40,6 +35,9 @@
 
 		if ($SkipDependenciesCheck) {
 			Disable-ModuleCommand -Name 'Get-ModuleDependencies' -ModuleName 'PowerShellGet'
+
+			$customReturn = Get-Module $Module.Path -ListAvailable
+			Disable-ModuleCommand -Name 'Microsoft.PowerShell.Core\Test-ModuleManifest' -ModuleName 'PowerShellGet' -Return $customReturn
 		}
 
 		try {
@@ -50,6 +48,7 @@
 		finally {
 			if ($SkipDependenciesCheck) {
 				Enable-ModuleCommand -Name 'Get-ModuleDependencies' -ModuleName 'PowerShellGet'
+				Enable-ModuleCommand -Name 'Microsoft.PowerShell.Core\Test-ModuleManifest' -ModuleName 'PowerShellGet'
 			}
 		}
 	}

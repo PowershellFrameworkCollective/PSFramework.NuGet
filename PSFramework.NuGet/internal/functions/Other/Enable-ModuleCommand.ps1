@@ -10,7 +10,7 @@
 		$ModuleName
 	)
 	process {
-		Import-Module $ModuleName
+		Import-Module $ModuleName -Verbose:$False
 		$module = Get-Module -Name $ModuleName
 
 		$internal = [PSFramework.Utility.UtilityHost]::GetPrivateProperty('Internal', $module.SessionState)
