@@ -207,7 +207,7 @@
 						#endregion Rename old version
 	
 						#region Deploy New Version
-						Write-PSFMessage -String 'Publish-StagingModule.Deploying.Remote' -StringValues $TargetPath.ComputerName, $module.Name, $version.Name -Target ("$($module.Name) ($($version.Name))")
+						Write-PSFMessage -String 'Publish-StagingModule.Deploying.Remote' -StringValues $TargetPath.ComputerName, $module.Name, $version.Name, $targetVersionRoot -Target ("$($module.Name) ($($version.Name))")
 						$deployResult = Invoke-SessionCommand @sessionCommon -Code {
 							param ($Path, $Destination)
 							if (-not (Test-Path -Path $Destination)) { $null = New-Item -Path $Destination -ItemType Directory -Force -ErrorAction Stop }
@@ -215,7 +215,7 @@
 						} -ArgumentList $targetStagingVersionDirectory, $targetVersionRoot
 
 						if (-not $deployResult.Success) {
-							Write-PSFMessage -Level Warning -String 'Publish-StagingModule.Deploying.Remote.Failed' -StringValues $TargetPath.ComputerName, $module.Name, $version.Name, $deployResult.Error -Target ("$($module.Name) ($($version.Name))")
+							Write-PSFMessage -Level Warning -String 'Publish-StagingModule.Deploying.Remote.Failed' -StringValues $TargetPath.ComputerName, $module.Name, $version.Name, $targetVersionRoot, $deployResult.Error -Target ("$($module.Name) ($($version.Name))")
 							$anyFailed = $true
 							if (-not $alreadyExists) {
 								New-PublishResult @publishCommon -Success $false -Message "Failed to deploy version: $($deployResult.Error)"

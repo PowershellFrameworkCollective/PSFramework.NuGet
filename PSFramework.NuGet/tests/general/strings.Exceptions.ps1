@@ -27,6 +27,7 @@ $exceptions['NoTextNeeded'] = @(
 	'Validate.Path'
 	'Validate.Path.Container'
 	'Validate.Path.Leaf'
+	'Validate.SafeName'
 	'Validate.TimeSpan.Positive'
 	'Validate.Uri.Absolute'
 	'Validate.Uri.Absolute.File'

@@ -244,6 +244,7 @@
 		Updates MyModule.psd1 to export the functions stored in $functions.
 		This will _replace_ the existing entries.
 	#>
+	[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $true)]
@@ -364,14 +365,17 @@
 		[switch]
 		$PassThru,
 
+		[Parameter(DontShow = $true)]
 		$Cmdlet = $PSCmdlet,
 
+		[Parameter(DontShow = $true)]
 		[switch]
 		$Continue
 	)
 	begin {
 		#region Utility Functions
 		function ConvertTo-ModuleRequirement {
+			[OutputType([System.Collections.Specialized.OrderedDictionary])]
 			[CmdletBinding()]
 			param (
 				[Parameter(ValueFromPipeline = $true)]
@@ -404,7 +408,8 @@
 			}
 		}
 		function Update-ManifestProperty {
-			[OutputType([System.Management.Automation.Language.Ast])]
+			[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
+			[OutputType([System.Management.Automation.Language.ScriptBlockAst])]
 			[CmdletBinding()]
 			param (
 				[Parameter(Mandatory = $true)]
@@ -469,7 +474,8 @@
 		}
 		
 		function Update-PrivateDataProperty {
-			[OutputType([System.Management.Automation.Language.Ast])]
+			[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
+			[OutputType([System.Management.Automation.Language.ScriptBlockAst])]
 			[CmdletBinding()]
 			param (
 				[Parameter(Mandatory = $true)]
@@ -538,7 +544,7 @@
 			if ($ProjectUri) { $privateData.PSData['ProjectUri'] = $ProjectUri }
 			if ($ReleaseNotes) { $privateData.PSData['ReleaseNotes'] = $ReleaseNotes }
 			if ($Prerelease) { $privateData.PSData['Prerelease'] = $Prerelease }
-			if ($ExternalModuleDependencies) { $privateData.PSData['ExternalModuleDependencies'] = ConvertTo-ModuleRequirement -InputObject $ExternalModuleDependencies -Cmdlet $Cmdlet -EnableException $killIt }
+			if ($ExternalModuleDependencies) { $privateData.PSData['ExternalModuleDependencies'] = ConvertTo-ModuleRequirement -InputObject $ExternalModuleDependencies -Cmdlet $Cmdlet -EnableException $EnableException }
 
 			$privateDataString = $privateData | ConvertTo-Psd1 -Depth 5
 			foreach ($pair in $replacements.GetEnumerator()) {

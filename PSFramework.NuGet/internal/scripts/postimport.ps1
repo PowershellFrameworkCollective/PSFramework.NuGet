@@ -30,3 +30,4 @@ $moduleRoot = Split-Path (Split-Path $PSScriptRoot)
 
 # Load Module Scopes
 (Get-ChildItem "$moduleRoot\internal\moduleScopes\*.ps1" -ErrorAction Ignore).FullName
+"$moduleRoot\internal\scripts\persistedScopes.ps1"

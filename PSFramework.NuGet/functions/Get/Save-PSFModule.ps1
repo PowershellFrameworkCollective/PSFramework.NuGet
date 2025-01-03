@@ -226,7 +226,7 @@
 			$shouldProcessMessage = "Saving modules to $Path"
 			$managedSessions = New-ManagedSession -ComputerName $ComputerName -Credential $RemotingCredential -Cmdlet $Cmdlet -Type Temporary
 			if ($ComputerName -and -not $managedSessions) {
-				Stop-PSFFunction -String 'Save-PSFModule.Error.NoComputerValid' -EnableException ($ErrorActionPreference -eq 'Stop') -Cmdlet $Cmdlet
+				Stop-PSFFunction -String 'Save-PSFModule.Error.NoComputerValid' -StringValues ($ComputerName -join ', ') -EnableException ($ErrorActionPreference -eq 'Stop') -Cmdlet $Cmdlet
 				return
 			}
 			$resolvedPaths = Resolve-RemotePath -Path $Path -ComputerName $managedSessions.Session -ManagedSession $managedSessions -TargetHandling Any -Cmdlet $Cmdlet # Errors for bad paths, terminates if no path

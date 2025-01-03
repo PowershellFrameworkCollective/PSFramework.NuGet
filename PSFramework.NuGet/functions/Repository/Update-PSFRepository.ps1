@@ -278,7 +278,7 @@
 						else { $param.InstallationPolicy = 'Untrusted' }
 					}
 
-					Invoke-PSFProtectedCommand -ActionString 'Update-PSFRepository.Repository.Update' -ActionStringValues $change.Actual.Type, $Change.Actual.Name -ScriptBlock {
+					Invoke-PSFProtectedCommand -ActionString 'Update-PSFRepository.Repository.Update' -ActionStringValues $change.Actual.Type, $Change.Actual.Name, ($param.Keys -join ',') -ScriptBlock {
 						Set-PSRepository @param -ErrorAction Stop
 					} -Target $change.Actual.Name -PSCmdlet $PSCmdlet -EnableException $false
 				}
@@ -293,7 +293,7 @@
 						$param.Trusted = $Change.Changes.Trusted
 					}
 
-					Invoke-PSFProtectedCommand -ActionString 'Update-PSFRepository.Repository.Update' -ActionStringValues $change.Actual.Type, $Change.Actual.Name -ScriptBlock {
+					Invoke-PSFProtectedCommand -ActionString 'Update-PSFRepository.Repository.Update' -ActionStringValues $change.Actual.Type, $Change.Actual.Name, ($param.Keys -join ',') -ScriptBlock {
 						Set-PSResourceRepository @param -ErrorAction Stop
 					} -Target $change.Actual.Name -PSCmdlet $PSCmdlet -EnableException $false
 				}

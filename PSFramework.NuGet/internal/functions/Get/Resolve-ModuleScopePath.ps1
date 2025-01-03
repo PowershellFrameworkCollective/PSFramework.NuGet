@@ -155,7 +155,7 @@
 		}
 		$scopeObject = $script:moduleScopes[$Scope]
 		if (-not $scopeObject) {
-			Stop-PSFFunction -String 'Resolve-ModuleScopePath.Error.ScopeNotFound' -StringValues $Scope -Cmdlet $Cmdlet -EnableException $killIt
+			Stop-PSFFunction -String 'Resolve-ModuleScopePath.Error.ScopeNotFound' -StringValues $Scope, ((Get-PSFModuleScope).Name -join ', ') -Cmdlet $Cmdlet -EnableException $killIt
 			return
 		}
 	}
@@ -194,7 +194,7 @@
 			if ($result.Success) { continue }
 
 			if (-not $result.Results) {
-				Write-PSFMessage -String 'Resolve-ModuleScopePath.Error.UnReached' -StringValues $result.ComputerName, ($Path -join ' | ') -Tag fail, connect -Target $result
+				Write-PSFMessage -String 'Resolve-ModuleScopePath.Error.UnReached' -StringValues $result.ComputerName, ($result.Path -join ' | ') -Tag fail, connect -Target $result
 			}
 			else {
 				Write-PSFMessage -String 'Resolve-ModuleScopePath.Error.NotFound' -StringValues $result.ComputerName, (@($result.Results).Where{ -not $_.Exists }.Path -join ' | ') -Tag fail, notfound -Target $result
@@ -204,10 +204,10 @@
 		}
 
 		if ($TargetHandling -eq 'All' -and @($testResult).Where{ -not $_.Success }.Count -gt 0) {
-			Stop-PSFFunction -String 'Resolve-ModuleScopePath.Fail.NotAll' -StringValues ($Path -join ' | ') -EnableException $true -Cmdlet $Cmdlet
+			Stop-PSFFunction -String 'Resolve-ModuleScopePath.Fail.NotAll' -StringValues (@($testResult).Where{-not $_.Success }.ComputerName -join ' | ') -EnableException $true -Cmdlet $Cmdlet
 		}
 		if ($TargetHandling -eq 'Any' -and @($testResult).Where{ $_.Success }.Count -eq 0) {
-			Stop-PSFFunction -String 'Resolve-ModuleScopePath.Fail.NotAny' -StringValues ($Path -join ' | ') -EnableException $true -Cmdlet $Cmdlet
+			Stop-PSFFunction -String 'Resolve-ModuleScopePath.Fail.NotAny' -StringValues ($testResult.ComputerName -join ' | ') -EnableException $true -Cmdlet $Cmdlet
 		}
 		#endregion Evaluate Success
 

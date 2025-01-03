@@ -61,6 +61,12 @@
 		This flags the module as "Prerelease", hiding it from regular Find-PSFModule / Install-PSFModule use.
 		Use to provide test versions that only affect those in the know.
 	
+	.PARAMETER WhatIf
+		If this switch is enabled, no actions are performed but informational messages will be displayed that explain what would happen if the command were to run.
+	
+	.PARAMETER Confirm
+		If this switch is enabled, you will be prompted for confirmation before executing any operations that change state.
+
 	.EXAMPLE
 		PS C:\> Publish-PSFModule -Path C:\code\MyModule -Repository PSGallery -ApiKey $key
 
@@ -177,10 +183,10 @@
 				:repo foreach ($repositoryObject in $repositories) {
 					switch ($repositoryObject.Type) {
 						V2 {
-							Publish-ModuleV2 @commonPublish -Module $moduleData -Repository $repositoryObject 
+							Publish-ModuleV2 @commonPublish -Module $moduleData -Repository $repositoryObject
 						}
 						V3 {
-							Publish-ModuleV3 @commonPublish -Module $moduleData -Repository $repositoryObject 
+							Publish-ModuleV3 @commonPublish -Module $moduleData -Repository $repositoryObject
 						}
 						default {
 							Stop-PSFFunction -String 'Publish-PSFModule.Error.UnexpectedRepositoryType' -StringValues $repositoryObject.Name, $repositoryObject.Type -Continue -Cmdlet $PSCmdlet -EnableException $killIt

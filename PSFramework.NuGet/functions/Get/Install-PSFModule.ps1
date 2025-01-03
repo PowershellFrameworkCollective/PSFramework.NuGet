@@ -182,7 +182,7 @@
 		$null = Resolve-Repository -Name $Repository -Type $Type -Cmdlet $PSCmdlet # Terminates if no repositories found
 		$managedSessions = New-ManagedSession -ComputerName $ComputerName -Credential $RemotingCredential -Cmdlet $PSCmdlet -Type Temporary
 		if ($ComputerName -and -not $managedSessions) {
-			Stop-PSFFunction -String 'Install-PSFModule.Error.NoComputerValid' -EnableException $killIt -Cmdlet $PSCmdlet
+			Stop-PSFFunction -String 'Install-PSFModule.Error.NoComputerValid' -StringValues ($ComputerName -join ', ') -EnableException $killIt -Cmdlet $PSCmdlet
 			return
 		}
 		$resolvedPaths = Resolve-ModuleScopePath -Scope $Scope -ManagedSession $managedSessions -TargetHandling Any -PathHandling Any -Cmdlet $PSCmdlet # Errors for bad paths, terminates if no path
@@ -195,6 +195,15 @@
 	process {
 		if (Test-PSFFunctionInterrupt) { return }
 
+		$stopParam = @{ StringValues = $Name -join ', '}
+		if ($InputObject) {
+			$names = foreach ($item in $InputObject) {
+				if ($item -is [string]) { $item }
+				elseif ($item.ModuleName) { $item.ModuleName }
+			}
+			$stopParam = @{ StringValues = $names -join ', '}
+		}
+		
 		#region Start Nested Save-PSFModule
 		if (-not $command) {
 			$command = { Save-PSFModule @saveParam -PathInternal $resolvedPaths -Cmdlet $PSCmdlet -ErrorAction $ErrorActionPreference }.GetSteppablePipeline()
@@ -202,7 +211,7 @@
 			catch {
 				if (-not $cleanedUp -and $managedSessions) { $managedSessions | Where-Object Type -EQ 'Temporary' | ForEach-Object Session | Remove-PSSession }
 				$cleanedUp = $true
-				Stop-PSFFunction -String 'Install-PSFModule.Error.Setup' -ErrorRecord $_ -EnableException $killIt -Cmdlet $PSCmdlet
+				Stop-PSFFunction -String 'Install-PSFModule.Error.Setup' @stopParam -ErrorRecord $_ -EnableException $killIt -Cmdlet $PSCmdlet
 				return
 			}
 		}
@@ -216,7 +225,7 @@
 		catch {
 			if (-not $cleanedUp -and $managedSessions) { $managedSessions | Where-Object Type -EQ 'Temporary' | ForEach-Object Session | Remove-PSSession }
 			$cleanedUp = $true
-			Stop-PSFFunction -String 'Install-PSFModule.Error.Installation' -ErrorRecord $_ -EnableException $killIt -Cmdlet $PSCmdlet
+			Stop-PSFFunction -String 'Install-PSFModule.Error.Installation' @stopParam -ErrorRecord $_ -EnableException $killIt -Cmdlet $PSCmdlet
 			return
 		}
 		#endregion Execute Process

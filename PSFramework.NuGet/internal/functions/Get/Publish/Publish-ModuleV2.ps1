@@ -92,7 +92,7 @@
 		}
 
 		try {
-			Invoke-PSFProtectedCommand -ActionString 'Publish-ModuleV2.Publish' -ActionStringValues $Module.Name, $Module.Version, $Repository -ScriptBlock {
+			Invoke-PSFProtectedCommand -ActionString 'Publish-ModuleV2.Publish' -ActionStringValues $Module.Name, $Module.Version, $Repository.Name -ScriptBlock {
 				Publish-Module @commonPublish -Path $Module.Path -ErrorAction Stop
 			} -Target "$($Module.Name) ($($Module.Version))" -PSCmdlet $Cmdlet -EnableException $killIt -Continue:$Continue -ContinueLabel $ContinueLabel
 		}

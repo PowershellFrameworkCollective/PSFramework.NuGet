@@ -163,14 +163,14 @@
 	}
 	process {
 		try {
-			New-DummyModule -Path $stagingDirectory -Name $Name -Version $Version -RequiredModules $RequiredModules -Description $Description -Author $Author -Cmdlet $PSCmdlet
+			New-DummyModule -Path $stagingDirectory -Name $Name -Version $Version -RequiredModules $RequiredModules -Description $Description -Author $Author
 			$resources = New-Item -Path $stagingDirectory -Name Resources -ItemType Directory -Force
 			$Path | Copy-Item -Destination $resources.FullName -Recurse -Force -Confirm:$false -WhatIf:$false
 
 			Publish-PSFModule @publishParam -Path $stagingDirectory -ErrorAction Stop
 		}
 		catch {
-			Stop-PSFFunction -String 'Publish-PSFResourceModule.Error' -StringValues $Name -EnableException $killIt -ErrorRecord $_ -Cmdlet $PSCmdlet
+			Stop-PSFFunction -String 'Publish-PSFResourceModule.Error' -StringValues $Name, ($Repository -join ', ') -EnableException $killIt -ErrorRecord $_ -Cmdlet $PSCmdlet
 			return
 		}
 		finally {

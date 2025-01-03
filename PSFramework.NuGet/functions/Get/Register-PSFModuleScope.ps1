@@ -29,6 +29,12 @@
 	.PARAMETER Description
 		A description to add to the module scope registered.
 		Purely for documentation purposes.
+
+	.PARAMETER Persist
+		Remember the configured scope.
+		For the current user, even when starting a new console, this scope will still exist.
+		This will NOT remember the "Mode" parameter - configure your PSModulePath environment evariable separately, if desired.
+		Not compatible with a ScriptBlock-based setting.
 	
 	.EXAMPLE
 		PS C:\> Register-PSFModuleScope -Name WinPSAllUsers -Path 'C:\Program Files\WindowsPowerShell\Modules'
@@ -57,7 +63,11 @@
 		$ScriptBlock,
 
 		[string]
-		$Description
+		$Description,
+
+		[Parameter(ParameterSetName = 'Path')]
+		[switch]
+		$Persist
 	)
 	process {
 		$typeMap = @{
@@ -72,6 +82,14 @@
 			ScriptBlock = $ScriptBlock
 			Description = $Description
 		}
+
+		if ($Persist) {
+			Set-PSFConfig -Module 'PSFramework.NuGet' -Name "ModuleScopes.$Name.Path" -Value $Path -PassThru | Register-PSFConfig
+			if ($Description) {
+				Set-PSFConfig -Module 'PSFramework.NuGet' -Name "ModuleScopes.$Name.Description" -Value $Description -PassThru | Register-PSFConfig
+			}
+		}
+
 		if (-not $Mode) { return }
 
 		$envPaths = $env:PSModulePath -split ';'

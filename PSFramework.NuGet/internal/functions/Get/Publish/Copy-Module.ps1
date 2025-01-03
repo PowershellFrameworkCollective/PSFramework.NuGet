@@ -1,9 +1,40 @@
 ﻿function Copy-Module {
+	<#
+	.SYNOPSIS
+		Copies the content of a module to a staging path and returns information about the module copied.
+	
+	.DESCRIPTION
+		Copies the content of a module to a staging path and returns information about the module copied.
+		This is intended to simplify the pre-publish preparation steps and help avoid modifying the actual sources by accident.
+	
+	.PARAMETER Path
+		Path where the module files are.
+	
+	.PARAMETER Destination
+		Destination Path to copy to.
+	
+	.PARAMETER Cmdlet
+		The PSCmdlet variable of the calling command, used to ensure errors happen within the scope of the caller, hiding this internal helper command from the user.
+	
+	.PARAMETER Continue
+		In case of error, call continue unless ErrorAction is set to Stop.
+		Simplifies error handling in non-terminating situations.
+	
+	.PARAMETER ContinueLabel
+		When used together with "-Contionue", it allowd you to specify the label/name of the loop to continue with.
+	
+	.EXAMPLE
+		PS C:\> Copy-Module -Path $sourceModule -Destination $workingDirectory -Cmdlet $PSCmdlet -Continue
+
+		Creates a copy of $sourceModule in $workingDirectory
+	#>
 	[CmdletBinding()]
 	param (
+		[Parameter(Mandatory = $true)]
 		[string]
 		$Path,
 
+		[Parameter(Mandatory = $true)]
 		[string]
 		$Destination,
 
@@ -45,7 +76,7 @@
 		$ast = [System.Management.Automation.Language.Parser]::ParseFile($manifestPath, [ref]$tokens, [ref]$errors)
 
 		if ($errors) {
-			Stop-PSFFunction -String 'Copy-Module.Error.ManifestSyntaxError' -StringValues $Path -Target $Path @stopCommon -Category ObjectNotFound
+			Stop-PSFFunction -String 'Copy-Module.Error.ManifestSyntaxError' -StringValues $manifestPath -Target $Path @stopCommon -Category ObjectNotFound
 			return
 		}
 		#endregion Validation

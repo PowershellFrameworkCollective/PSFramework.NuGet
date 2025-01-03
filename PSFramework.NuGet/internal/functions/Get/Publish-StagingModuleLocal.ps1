@@ -60,7 +60,7 @@
 				$testPath = Join-Path -Path $destination.Path -ChildPath "$($module.Name)/$($version.Name)/$($module.DirectoryName).psd1"
 				$alreadyExists = Test-Path -Path $testPath
 				if ($alreadyExists -and -not $Force) {
-					Write-PSFMessage @msgParam -String 'Publish-StagingModule.Skipping.AlreadyExists' -StringValues $module.Name, $version.Name
+					Write-PSFMessage @msgParam -String 'Publish-StagingModule.Skipping.AlreadyExists' -StringValues $module.Name, $version.Name, $destination.Path
 					continue
 				}
 
@@ -78,7 +78,7 @@
 				}
 
 				# Deploy New Version
-				Invoke-PSFProtectedCommand -ActionString 'Publish-StagingModule.Deploying.Local' -ActionStringValues $module.Name, $version.Name -Target $TargetPath -ScriptBlock {
+				Invoke-PSFProtectedCommand -ActionString 'Publish-StagingModule.Deploying.Local' -ActionStringValues $module.Name, $version.Name, $destination.Path -Target $TargetPath -ScriptBlock {
 					if (-not (Test-Path $targetVersionRoot)) { $null = New-Item -Path $destination.Path -Name $module.Name -ItemType Directory -Force }
 					Copy-Item -Path $version.FullName -Destination $targetVersionRoot -Recurse -Force
 				} -PSCmdlet $Cmdlet -EnableException $killIt -Continue -ErrorEvent {

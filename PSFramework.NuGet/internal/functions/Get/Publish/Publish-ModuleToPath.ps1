@@ -1,4 +1,41 @@
 ﻿function Publish-ModuleToPath {
+	<#
+	.SYNOPSIS
+		Publishes a module to a specific target path-
+	
+	.DESCRIPTION
+		Publishes a module to a specific target path-
+		This will create an appropriate .nupkg file in the target location.
+		Dependencies will not be considered when publishing like this.
+
+		The module cannot already exist in the target path.
+	
+	.PARAMETER Module
+		The module to publish.
+		Expects a module information object as returned by Copy-Module.
+	
+	.PARAMETER Path
+		The path to publish to.
+	
+	.PARAMETER ForceV3
+		Force publishing via PSResourceGet.
+		By default it uses the latest version the module detected as available.
+		This is primarily used for internal testing of the command without a module context.
+	
+	.PARAMETER Cmdlet
+		The PSCmdlet variable of the calling command, used to ensure errors happen within the scope of the caller, hiding this internal helper command from the user.
+
+	.PARAMETER WhatIf
+		If this switch is enabled, no actions are performed but informational messages will be displayed that explain what would happen if the command were to run.
+	
+	.PARAMETER Confirm
+		If this switch is enabled, you will be prompted for confirmation before executing any operations that change state.
+	
+	.EXAMPLE
+		PS C:\> Publish-ModuleToPath -Module $moduleData -Path $DestinationPath -Cmdlet $PSCmdlet
+
+		Publishes the module to the provided $DestinationPath.
+	#>
 	[CmdletBinding(SupportsShouldProcess = $true)]
 	param (
 		$Module,

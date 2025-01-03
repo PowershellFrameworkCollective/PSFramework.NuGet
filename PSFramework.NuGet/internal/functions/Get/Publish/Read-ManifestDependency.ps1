@@ -1,4 +1,24 @@
 ﻿function Read-ManifestDependency {
+	<#
+	.SYNOPSIS
+		Reads the RequiredModules from a manifest, using AST.
+	
+	.DESCRIPTION
+		Reads the RequiredModules from a manifest, using AST.
+
+		Will return a list of objects with the following properties:
+		- Name: Name of the required module
+		- Version: Version of the required module. Will return 0.0.0 if no version is required.
+		- Exact: Whether the version constraint means EXACTLY this version, rather than AT LEAST this version.
+	
+	.PARAMETER Path
+		Path to the manifest to read.
+	
+	.EXAMPLE
+		PS C:\> Read-ManifestDependency -Path C:\Code\MyModule\MyModule.psd1
+
+		Returns the modules required by the MyModule module.
+	#>
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $true)]

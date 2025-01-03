@@ -185,10 +185,10 @@
 		}
 
 		if ($TargetHandling -eq 'All' -and @($testResult).Where{ -not $_.Success }.Count -gt 0) {
-			Stop-PSFFunction -String 'Resolve-RemotePath.Fail.NotAll' -StringValues ($Path -join ' | ') -EnableException $true -Cmdlet $Cmdlet
+			Stop-PSFFunction -String 'Resolve-RemotePath.Fail.NotAll' -StringValues (@($testResult).Where{-not $_.Success }.ComputerName -join ' | '), ($Path -join ' | ') -EnableException $true -Cmdlet $Cmdlet
 		}
 		if ($TargetHandling -eq 'Any' -and @($testResult).Where{ $_.Success }.Count -eq 0) {
-			Stop-PSFFunction -String 'Resolve-RemotePath.Fail.NotAny' -StringValues ($Path -join ' | ') -EnableException $true -Cmdlet $Cmdlet
+			Stop-PSFFunction -String 'Resolve-RemotePath.Fail.NotAny' -StringValues ($testResult.ComputerName -join ' | '), ($Path -join ' | ') -EnableException $true -Cmdlet $Cmdlet
 		}
 
 		$testResult
