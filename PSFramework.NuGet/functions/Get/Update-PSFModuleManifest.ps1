@@ -1,8 +1,91 @@
 ﻿function Update-PSFModuleManifest {
 	[CmdletBinding()]
 	param (
+		[Parameter(Mandatory = $true)]
+		[PsfValidateScript('PSFramework.Validate.FSPath.File', ErrorString = 'PSFramework.Validate.FSPath.File')]
+		[string]
 		$Path,
+
+		[guid]
+		$Guid,
+
+		[string]
+		$Author,
+
+		[string]
+		$CompanyName,
+
+		[string]
+		$CopyRight,
+
+		[string]
+		$RootModule,
 		
+		[version]
+		$ModuleVersion,
+
+		[string]
+		$Description,
+
+		[ValidateSet('', 'X86', 'Amd64')]
+		[string]
+		$ProcessorArchitecture,
+
+		[ValidateSet('Core', 'Desktop')]
+		[string[]]
+		$CompatiblePSEditions,
+
+		[version]
+		$PowerShellVersion,
+		
+		[version]
+		$ClrVersion,
+
+		[version]
+		$DotNetFrameworkVersion,
+
+		[string]
+		$PowerShellHostName,
+
+		[version]
+		$PowerShellHostVersion,
+
+		[object[]]
+		$RequiredModules,
+
+		[string[]]
+		$TypesToProcess,
+
+		[string[]]
+		$FormatsToProcess,
+
+		[string[]]
+		$ScriptsToProcess,
+
+		[string[]]
+		$RequiredAssemblies,
+
+		[string[]]
+		$FileList,
+
+		[object[]]
+		$ModuleList,
+
+		[string[]]
+		$FunctionsToExport,
+
+		[string[]]
+		$AliasesToExport,
+
+		[string[]]
+		$VariablesToExport,
+
+		[string[]]
+		$CmdletsToExport,
+
+		[string[]]
+		$DscResourcesToExport,
+
 		[string[]]
 		$Tags,
 		
@@ -21,6 +104,18 @@
 		[string]
 		$Prerelease,
 
+		[object[]]
+		$ExternalModuleDependencies,
+
+		[uri]
+		$HelpInfoUri,
+
+		[string]
+		$DefaultCommandPrefix,
+
+		[object[]]
+		$NestedModules,
+
 		[switch]
 		$PassThru,
 
@@ -31,6 +126,38 @@
 	)
 	begin {
 		#region Utility Functions
+		function ConvertTo-ModuleRequirement {
+			[CmdletBinding()]
+			param (
+				[Parameter(ValueFromPipeline = $true)]
+				[AllowEmptyCollection()]
+				[AllowNull()]
+				[AllowEmptyString()]
+				$InputObject,
+
+				[bool]
+				$EnableException,
+
+				$Cmdlet
+			)
+			process {
+				foreach ($item in $InputObject) {
+					if (-not $item) { continue }
+
+					if ($item -is [string]) { $item; continue }
+
+					if (-not $item.ModuleName) {
+						Stop-PSFFunction -String 'Update-PSFModuleManifest.Error.InvalidModuleReference' -StringValues $item -Target $item -EnableException $EnableException -Cmdlet $Cmdlet -Category InvalidArgument -Continue
+					}
+
+					$data = @{ ModuleName = $item.ModuleName }
+					if ($item.RequiredVersion) { $data.RequiredVersion = '{0}' -f $item.RequiredVersion }
+					elseif ($item.ModuleVersion) { $data.ModuleVersion = '{0}' -f $item.ModuleVersion }
+
+					$data
+				}
+			}
+		}
 		function Update-ManifestProperty {
 			[OutputType([System.Management.Automation.Language.Ast])]
 			[CmdletBinding()]
@@ -60,7 +187,7 @@
 
 			$entry = $mainhash.KeyValuePairs | Where-Object { $_.Item1.Value -eq $Property }
 			$stringValue = switch ($Type) {
-				'String' { $Value | ConvertTo-Psd1 }
+				'String' { "$Value" | ConvertTo-Psd1 }
 				'StringArray' { , @(, @($Value)) | ConvertTo-Psd1 }
 				'HashtableArray' { , @(, @($Value)) | ConvertTo-Psd1 }
 			}
@@ -115,8 +242,32 @@
 			Stop-PSFFunction -String 'Update-PSFModuleManifest.Error.BadManifest' -StringValues (Get-Item -Path $Path).BaseName, $Path -Cmdlet $Cmdlet -EnableException $killIt -Continue:$Continue
 			return
 		}
+
+		#region Main Properties
+		$stringProperties = 'Guid','Author','CompanyName','CopyRight','RootModule','ModuleVersion','Description','ProcessorArchitecture','PowerShellVersion','ClrVersion','DotNetFrameworkVersion','PowerShellHostName','PowerShellHostVersion','HelpInfoUri','DefaultCommandPrefix'
+		foreach ($property in $stringProperties) {
+			if ($PSBoundParameters.Keys -notcontains $property) { continue }
+			$ast = Update-ManifestProperty -Ast $ast -Property $property -Value $PSBoundParameters.$property -Type String
+		}
+		$stringArrayProperties = 'CompatiblePSEditions','TypesToProcess','FormatsToProcess','ScriptsToProcess','RequiredAssemblies','FileList','FunctionsToExport','AliasesToExport','VariablesToExport','CmdletsToExport','DscResourcesToExport'
+		foreach ($property in $stringArrayProperties) {
+			if ($PSBoundParameters.Keys -notcontains $property) { continue }
+			$ast = Update-ManifestProperty -Ast $ast -Property $property -Value $PSBoundParameters.$property -Type StringArray
+		}
+		$moduleProperties = 'RequiredModules','ModuleList','NestedModules'
+		foreach ($property in $moduleProperties) {
+			if ($PSBoundParameters.Keys -notcontains $property) { continue }
+			$ast = Update-ManifestProperty -Ast $ast -Property $property -Value ($PSBoundParameters.$property | ConvertTo-ModuleRequirement -EnableException $killIt -Cmdlet $Cmdlet) -Type StringArray
+		}
+		#endregion Main Properties
 		
 		#region PrivateData Content
+		$mainHash = $ast.FindAll({
+			$args[0] -is [System.Management.Automation.Language.HashtableAst] -and
+			$args[0].KeyValuePairs.Item1.Value -contains 'RootModule' -and
+			$args[0].KeyValuePairs.Item1.Value -Contains 'ModuleVersion'
+		}, $true)
+
 		$privateData = [ordered]@{
 			PSData = [ordered]@{ }
 		}
@@ -147,6 +298,7 @@
 		if ($ProjectUri) { $privateData.PSData['ProjectUri'] = $ProjectUri }
 		if ($ReleaseNotes) { $privateData.PSData['ReleaseNotes'] = $ReleaseNotes }
 		if ($Prerelease) { $privateData.PSData['Prerelease'] = $Prerelease }
+		if ($ExternalModuleDependencies) { $privateData.PSData['ExternalModuleDependencies'] = ConvertTo-ModuleRequirement -InputObject $ExternalModuleDependencies -Cmdlet $Cmdlet -EnableException $killIt }
 
 		$privateDataString = $privateData | ConvertTo-Psd1 -Depth 5
 		foreach ($pair in $replacements.GetEnumerator()) {
