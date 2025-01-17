@@ -45,7 +45,7 @@
 	process {
 		if ($script:psget.V3 -and $Type -in 'All','V3') {
 			foreach ($repository in Get-PSResourceRepository -Name $Name -ErrorAction Ignore) {
-				if (-not $repository) [ continue ]
+				if (-not $repository) { continue }
 				[PSCustomObject]@{
 					PSTypeName = 'PSFramework.NuGet.Repository'
 					Name       = $repository.Name
@@ -65,7 +65,7 @@
 			if (-not $script:psget.v2CanInstall) { $status = 'NoInstall' }
 
 			foreach ($repository in Get-PSRepository -Name $Name -ErrorAction Ignore) {
-				if (-not $repository) [ continue ]
+				if (-not $repository) { continue }
 				[PSCustomObject]@{
 					PSTypeName = 'PSFramework.NuGet.Repository'
 					Name       = $repository.Name
