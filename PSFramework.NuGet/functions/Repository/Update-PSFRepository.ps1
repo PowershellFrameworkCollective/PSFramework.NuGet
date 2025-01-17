@@ -54,87 +54,92 @@
 			$supportedTypes = 'Any', 'Update', 'All', 'V2', 'V2Preferred', 'V3'
 
 			foreach ($configuredRepo in $Configured) {
-				# Incomplete configurations are ignored (e.g. just storing credentials)
-				if (-not $configuredRepo.Type -or -not $configuredRepo.Uri) { continue }
+				# Incomplete configurations are processed in a limited manner, as not enough information is present to create or delete
+				$isIncomplete = -not $configuredRepo.Type -or -not $configuredRepo.Uri
 				
-				if ($configuredRepo.Type -notin $supportedTypes) {
+				if (-not $isIncomplete -and $configuredRepo.Type -notin $supportedTypes) {
 					Write-PSFMessage -Level Warning -String 'Update-PSFRepository.Error.InvalidType' -StringValues $configuredRepo.Type, ($supportedTypes -join ', ')
 					continue
 				}
 
 				$matching = $Actual | Where-Object Name -EQ $configuredRepo._Name
-				$shouldExist = -not ($configuredRepo.PSObject.Properties.Name -contains 'Present' -and -not $configuredRepo.Present)
+				# An incomplete configuration can only be used to modify an existing repository, so skip if nothing matches
+				if ($isIncomplete -and -not $matching) { continue }
 
-				$mayBeV2 = $configuredRepo.Type -in 'Any', 'Update', 'All', 'V2', 'V2Preferred'
-				if ('Update' -eq $configuredRepo.Type -and $script:psget.V3) { $mayBeV2 = $false }
-				$mustBeV2 = $configuredRepo.Type -in 'All', 'V2'
-				$mayBeV3 = $configuredRepo.Type -in 'Any', 'Update', 'All', 'V3', 'V2Preferred'
-				if ('V2Preferred' -eq $configuredRepo.Type -and $script:psget.V2) { $mayBeV3 = $false }
-				$mustBeV3 = $configuredRepo.Type -in 'Update', 'All', 'V3'
+				if (-not $isIncomplete) {
+					$shouldExist = -not ($configuredRepo.PSObject.Properties.Name -contains 'Present' -and -not $configuredRepo.Present)
 
-				# Case: Should not exist and does not
-				if (-not $shouldExist -and -not $matching) {
-					continue
-				}
+					$mayBeV2 = $configuredRepo.Type -in 'Any', 'Update', 'All', 'V2', 'V2Preferred'
+					if ('Update' -eq $configuredRepo.Type -and $script:psget.V3) { $mayBeV2 = $false }
+					$mustBeV2 = $configuredRepo.Type -in 'All', 'V2'
+					$mayBeV3 = $configuredRepo.Type -in 'Any', 'Update', 'All', 'V3', 'V2Preferred'
+					if ('V2Preferred' -eq $configuredRepo.Type -and $script:psget.V2) { $mayBeV3 = $false }
+					$mustBeV3 = $configuredRepo.Type -in 'Update', 'All', 'V3'
 
-				#region Deletion
-				foreach ($matchingRepo in $matching) {
-					if (
-						# Should exist
-						$shouldExist -and
-						(
-							$matchingRepo.Type -eq 'V2' -and $mayBeV2 -or
-							$matchingRepo.Type -eq 'V3' -and $mayBeV3
-						)
-					) {
+					# Case: Should not exist and does not
+					if (-not $shouldExist -and -not $matching) {
 						continue
 					}
 
-					[PSCustomObject]@{
-						Type       = 'Delete'
-						Configured = $configuredRepo
-						Actual     = $matchingRepo
-						Changes    = @{ }
-					}
-				}
-				if (-not $shouldExist) { continue }
-				#endregion Deletion
+					#region Deletion
+					foreach ($matchingRepo in $matching) {
+						if (
+							# Should exist
+							$shouldExist -and
+							(
+								$matchingRepo.Type -eq 'V2' -and $mayBeV2 -or
+								$matchingRepo.Type -eq 'V3' -and $mayBeV3
+							)
+						) {
+							continue
+						}
 
-				#region Creation
-				# Case: Should exist but does not
-				if ($shouldExist -and -not $matching) {
-					[PSCustomObject]@{
-						Type       = 'Create'
-						Configured = $configuredRepo
-						Actual     = $null
-						Changes    = @{ }
+						[PSCustomObject]@{
+							Type       = 'Delete'
+							Configured = $configuredRepo
+							Actual     = $matchingRepo
+							Changes    = @{ }
+						}
 					}
-					continue
-				}
+					if (-not $shouldExist) { continue }
+					#endregion Deletion
 
-				# Case: Must exist on V2 but does not
-				if ($mustBeV2 -and $matching.Type -notcontains 'V2' -and $script:psget.V2) {
-					[PSCustomObject]@{
-						Type       = 'Create'
-						Configured = $configuredRepo
-						Actual     = $matching
-						Changes    = @{ }
+					#region Creation
+					# Case: Should exist but does not
+					if ($shouldExist -and -not $matching) {
+						[PSCustomObject]@{
+							Type       = 'Create'
+							Configured = $configuredRepo
+							Actual     = $null
+							Changes    = @{ }
+						}
+						continue
 					}
-				}
 
-				# Case: Must exist on V3 but does not
-				if ($mustBeV3 -and $matching.Type -notcontains 'V3' -and $script:psget.V3) {
-					[PSCustomObject]@{
-						Type       = 'Create'
-						Configured = $configuredRepo
-						Actual     = $matching
-						Changes    = @{ }
+					# Case: Must exist on V2 but does not
+					if ($mustBeV2 -and $matching.Type -notcontains 'V2' -and $script:psget.V2) {
+						[PSCustomObject]@{
+							Type       = 'Create'
+							Configured = $configuredRepo
+							Actual     = $matching
+							Changes    = @{ }
+						}
 					}
-				}
 
-				# If there is no matching, existing repository, there is no need to update
-				if (-not $matching) { continue }
-				#endregion Creation
+					# Case: Must exist on V3 but does not
+					if ($mustBeV3 -and $matching.Type -notcontains 'V3' -and $script:psget.V3) {
+						[PSCustomObject]@{
+							Type       = 'Create'
+							Configured = $configuredRepo
+							Actual     = $matching
+							Changes    = @{ }
+						}
+					}
+					
+					# If there is no matching, existing repository, there is no need to update
+					if (-not $matching) { continue }
+					#endregion Creation
+				}
 
 				#region Update
 				foreach ($matchingRepo in $matching) {
@@ -147,7 +152,7 @@
 					if ($null -eq $trusted) { $trusted = $true }
 					
 					$changes = @{ }
-					if ($matchingRepo.Uri -ne $intendedUri) { $changes.Uri = $intendedUri }
+					if (-not $isIncomplete -and $matchingRepo.Uri -ne $intendedUri) { $changes.Uri = $intendedUri }
 					if ($matchingRepo.Trusted -ne $trusted) { $changes.Trusted = $trusted -as [bool] }
 					if (
 						$configuredRepo.Priority -and
@@ -208,10 +213,10 @@
 				$uri = $Change.Configured.Uri -replace 'v3/index.json$', 'v2'
 
 				$param = @{
-					Name = $Change.Configured._Name
-					SourceLocation = $uri
+					Name            = $Change.Configured._Name
+					SourceLocation  = $uri
 					PublishLocation = $uri
-					ErrorAction = 'Stop'
+					ErrorAction     = 'Stop'
 				}
 				if ($trusted) { $param.InstallationPolicy = 'Trusted' }
 				if ($Change.Configured.Proxy) { $param.Proxy = $Change.Configured.Proxy }
@@ -222,9 +227,9 @@
 			}
 			if ($registerV3) {
 				$param = @{
-					Name = $Change.Configured._Name
-					Uri = $Change.Configured.Uri
-					Trusted = $trusted
+					Name        = $Change.Configured._Name
+					Uri         = $Change.Configured.Uri
+					Trusted     = $trusted
 					ErrorAction = 'Stop'
 				}
 				if ($null -ne $Change.Configured.Priority) {
