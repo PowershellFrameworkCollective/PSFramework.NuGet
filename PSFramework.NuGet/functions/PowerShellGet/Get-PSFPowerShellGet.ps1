@@ -50,7 +50,7 @@
 			}
 
 			[PSCustomObject]@{
-				PSTypeName = 'PSFramework.NuGet.GetReport'
+				PSTypeName   = 'PSFramework.NuGet.GetReport'
 				ComputerName = $env:COMPUTERNAME
 				V2           = ($modules | Where-Object { $_.Version.Major -lt 3 }) -as [bool]
 				V3           = $modulesV3 -as [bool]

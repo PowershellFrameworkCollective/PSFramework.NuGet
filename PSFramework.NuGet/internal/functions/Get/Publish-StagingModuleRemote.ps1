@@ -60,6 +60,7 @@
 
 			$PSDefaultParameterValues['Write-PSFMessage:ModuleName'] = 'PSFramework.NuGet'
 			$PSDefaultParameterValues['Write-PSFMessage:FunctionName'] = 'Publish-StagingModule'
+			$__PSF_Workflow.Data.InProgress[$TargetPath.ComputerName] = $true
 
 			#region Functions
 			function Get-GlobalFailResult {

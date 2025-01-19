@@ -104,6 +104,7 @@
 			if ($Repository.Credential) { $callSpecifics.Credential = $Repository.Credential }
 
 			$result = [PSCustomObject]@{
+				PSTypeName     = 'PSFramework.NuGet.DownloadResult'
 				Success        = $false
 				Error          = $null
 				ModuleName     = $Item.Name
@@ -203,8 +204,8 @@
 			Write-PSFMessage -String 'Save-StagingModule.SavingV3.Start' -StringValues $Item.Name, $Item.Version, $Repository.Name, $Repository.Type -Target $Item
 
 			$callSpecifics = @{
-				ErrorAction   = 'Stop'
-				Repository    = $Repository.Name
+				ErrorAction = 'Stop'
+				Repository  = $Repository.Name
 			}
 			if ((Get-Command Save-PSResource).Parameters.Keys -contains 'AcceptLicense') {
 				$callSpecifics.AcceptLicense = $true
@@ -214,6 +215,7 @@
 			if ($SkipDependency) { $callSpecifics.SkipDependencyCheck = $true }
 
 			$result = [PSCustomObject]@{
+				PSTypeName     = 'PSFramework.NuGet.DownloadResult'
 				Success        = $false
 				Error          = $null
 				ModuleName     = $Item.Name
@@ -282,7 +284,7 @@
 		}
 	}
 	process {
-		:item foreach ($installItem in $InstallData) {
+		$null = :item foreach ($installItem in $InstallData) {
 			$saveResults = foreach ($repository in $Repositories | Set-PSFObjectOrder -Property Priority, '>Type') {
 				$saveResult = switch ($repository.Type) {
 					V2 { Save-StagingModuleV2 -Repository $repository -Item $installItem @common }

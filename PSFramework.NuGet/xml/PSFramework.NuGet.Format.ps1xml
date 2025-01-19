@@ -1,6 +1,45 @@
 ﻿<?xml version="1.0" encoding="utf-16"?>
 <Configuration>
     <ViewDefinitions>
+        <!-- PSFramework.NuGet.GetReport -->
+        <View>
+            <Name>PSFramework.NuGet.GetReport</Name>
+            <ViewSelectedBy>
+                <TypeName>PSFramework.NuGet.GetReport</TypeName>
+            </ViewSelectedBy>
+            <TableControl>
+                <AutoSize/>
+                <TableHeaders>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>ComputerName</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>V2</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>V3</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>V2CanInstall</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>V2CanPublish</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                </TableRowEntries>
+            </TableControl>
+        </View>
+
         <!-- PSFramework.NuGet.ModuleInfo -->
         <View>
             <Name>PSFramework.NuGet.ModuleInfo</Name>
