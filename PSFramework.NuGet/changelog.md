@@ -1,11 +1,15 @@
 ﻿# Changelog
 
-## ???
+## 0.9.11 (2025-05-05)
 
++ New: Bootstrap script to deploy PSFramework.NuGet to the local computer without requiring Package Management.
++ New: Module automatically deploys the NuGet provider to the user profile on module import, to simplify the PowerShellGet experience
 + Upd: Updated to include PSResourceGet 1.1.0
 + Upd: Get-PSFPowerShellGet - improved result display style
++ Fix: Install-PSFModule - fails to detect already existing version of module and attempts to overwrite
 + Fix: Install-PSFModule - returns unexpected object when successfully installing, but not from the first priority repository
 + Fix: Install-PSFModule - progress bar does not show number of deployments in progress.
++ Fix: Save-PSFModule - fails to detect already existing version of module and attempts to overwrite
 + Fix: Scope: AllUsers - fails to install to AllUsers when no module has been installed there yet.
 
 ## 0.9.2 (2025-01-17)

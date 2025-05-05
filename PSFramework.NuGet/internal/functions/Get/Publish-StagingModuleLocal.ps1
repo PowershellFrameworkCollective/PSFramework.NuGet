@@ -57,10 +57,11 @@
 				$publishCommon.Module = $module.Name
 				$publishCommon.Version = $version.Name
 
-				$testPath = Join-Path -Path $destination.Path -ChildPath "$($module.Name)/$($version.Name)/$($module.DirectoryName).psd1"
+				$testPath = Join-Path -Path $destination.Path -ChildPath "$($module.Name)/$($version.Name)/$($module.Name).psd1"
 				$alreadyExists = Test-Path -Path $testPath
 				if ($alreadyExists -and -not $Force) {
 					Write-PSFMessage @msgParam -String 'Publish-StagingModule.Skipping.AlreadyExists' -StringValues $module.Name, $version.Name, $destination.Path
+					New-PublishResult @publishCommon -Success $true -Message 'Module already deployed'
 					continue
 				}
 
