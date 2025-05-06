@@ -3,7 +3,7 @@
 	RootModule        = 'PSFramework.NuGet.psm1'
 	
 	# Version number of this module.
-	ModuleVersion     = '0.9.11'
+	ModuleVersion     = '0.9.12'
 	
 	# ID used to uniquely identify this module
 	GUID              = 'ad0f2a25-552f-4dd6-bd8e-5ddced2a5d88'

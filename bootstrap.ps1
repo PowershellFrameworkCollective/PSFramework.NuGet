@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
 	Installs all that is needed to run PSFramework.NuGet without using the PowerShellGet tools.
 

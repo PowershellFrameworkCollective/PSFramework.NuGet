@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 0.9.12 (2025-05-06)
+
++ Fix: Install-PSFModule - fails to install on a default Windows PowerShell console without any modifications.
+
 ## 0.9.11 (2025-05-05)
 
 + New: Bootstrap script to deploy PSFramework.NuGet to the local computer without requiring Package Management.

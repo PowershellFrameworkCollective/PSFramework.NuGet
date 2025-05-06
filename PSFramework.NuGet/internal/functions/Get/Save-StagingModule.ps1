@@ -115,8 +115,10 @@
 
 			$tempDirectory = New-PSFTempDirectory -Name StagingSub -ModuleName PSFramework.NuGet
 			$param = $Item.v2Param
+			$actualParam = $param + $callSpecifics | ConvertTo-PSFHashtable -ReferenceCommand Save-Module
+
 			# 1) Save to temp folder
-			try { Save-Module @param -Path $tempDirectory @callSpecifics }
+			try { Save-Module @actualParam -Path $tempDirectory }
 			catch {
 				Write-PSFMessage -String 'Save-StagingModule.SavingV2.Error.Download' -StringValues $Item.Name, $Item.Version, $Repository.Name, $Repository.Type -Target $Item -Tag fail, save -ErrorRecord $_
 				$result.Error = $_
