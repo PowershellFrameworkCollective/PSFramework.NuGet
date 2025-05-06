@@ -52,6 +52,13 @@ To install this module, run ...
 Install-Module PSFramework.NuGet -Scope CurrentUser
 ```
 
+Of course, problem here is that if you want to use this module, this very line might be failing already!
+So, here is a way to bootstrap your current console without requiring PowerShellGet to already function:
+
+```powershell
+iwr https://raw.githubusercontent.com/PowershellFrameworkCollective/PSFramework.NuGet/refs/heads/master/bootstrap.ps1 | iex
+```
+
 ## Features
 
 ### Module Installation (Local or Remote)
