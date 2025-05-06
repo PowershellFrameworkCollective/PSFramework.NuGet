@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## ???
+## 0.9.12 (2025-05-06)
 
 + Fix: Install-PSFModule - fails to install on a default Windows PowerShell console without any modifications.
 
