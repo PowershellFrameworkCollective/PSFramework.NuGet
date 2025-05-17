@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+## 0.9.16 (2025-05-17)
+
++ Upd: Install-PSFPowerShellGet - now allows bootstrapping localhost without requiring elevation.
++ Fix: Publish-PSFResourceModule - does not include files with brackets (`[]`) in their name.
++ Fix: Save-PSFResourceModule - does not include empty folders or files when using V3 repositories.
++ Fix: Find-PSFModule - fails (with error) when searching for prerelease versions on a default Windows PowerShell console without any modifications.
+
 ## 0.9.12 (2025-05-06)
 
 + Fix: Install-PSFModule - fails to install on a default Windows PowerShell console without any modifications.

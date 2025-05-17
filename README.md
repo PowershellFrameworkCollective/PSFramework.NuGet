@@ -59,6 +59,18 @@ So, here is a way to bootstrap your current console without requiring PowerShell
 iwr https://raw.githubusercontent.com/PowershellFrameworkCollective/PSFramework.NuGet/refs/heads/master/bootstrap.ps1 | iex
 ```
 
+> Update the Tooling
+
+This toolkit tries to help make module installation go smoothly with as little effort for you as possible.
+However, it still uses the official Microsoft Modules to download and modules for maximum compatibility.
+If some of the things you want to work still will not, you may need to update your PowerShellGet modules, which can be done with this line:
+
+```powershell
+Install-PSFPowerShellGet -Type V2Binaries, V2Latest, V3Latest
+```
+
+After that line, start a new console and you should be up-to-date on all your tools needed.
+
 ## Features
 
 ### Module Installation (Local or Remote)
@@ -104,7 +116,7 @@ So lets fix this:
 
 ```powershell
 # Bootstrap Binaries for old Versions
-Install-PSFPowerShellGet -Type V2Binaries -ComputerName $sessions
+Install-PSFPowerShellGet -Type V2Binaries -ComputerName server1, server2, server3
 
 # Install Latest V2
 Install-PSFPowerShellGet -Type V2Latest -ComputerName $sessions

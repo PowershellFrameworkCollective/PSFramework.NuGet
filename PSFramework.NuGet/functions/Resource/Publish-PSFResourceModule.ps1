@@ -165,7 +165,8 @@
 		try {
 			New-DummyModule -Path $stagingDirectory -Name $Name -Version $Version -RequiredModules $RequiredModules -Description $Description -Author $Author
 			$resources = New-Item -Path $stagingDirectory -Name Resources -ItemType Directory -Force
-			$Path | Copy-Item -Destination $resources.FullName -Recurse -Force -Confirm:$false -WhatIf:$false
+			Copy-Item -LiteralPath $($Path) -Destination $resources.FullName -Recurse -Force -Confirm:$false -WhatIf:$false
+			ConvertTo-TransportFile -Path $resources.FullName
 
 			Publish-PSFModule @publishParam -Path $stagingDirectory -ErrorAction Stop
 		}
