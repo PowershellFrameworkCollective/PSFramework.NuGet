@@ -43,6 +43,12 @@
 	.PARAMETER NotInternal
 		Do not use the internally provided PowerShellGet module versions.
 		This REQUIRES you to either provide the module data via -SourcePath or to have live online access.
+
+	.PARAMETER UserMode
+		Deploy the resource into user paths, rather than computer-wide.
+		This allows bootstrapping _without_ requiring elevation and is usually only needed on the local computer.
+		This mode is automatically selected when deploying to the local computer and not running PowerShell "As Administrator".
+		Only applies to / affects Windows computers.
 	
 	.EXAMPLE
 		PS C:\> Install-PSFPowerShell -Type V3Latest -ComputerName (Get-ADComputer -Filter * -SearchBase $myOU)
@@ -69,7 +75,10 @@
 		$Offline,
 
 		[switch]
-		$NotInternal
+		$NotInternal,
+
+		[switch]
+		$UserMode
 	)
 	
 	begin {
@@ -161,7 +170,7 @@
 
 			$actualConfiguration = Import-PSFPowerShellDataFile -Path (Join-Path -Path $rootPath -ChildPath 'modules.json')
 			$data = @{
-				Type = $Type
+				Type   = $Type
 				Config = $actualConfiguration
 			}
 			switch ($Type) {
@@ -180,7 +189,9 @@
 		#region Actual Code
 		$code = {
 			param (
-				$Data
+				$Data,
+
+				$AsCurrentUser
 			)
 
 			#region Functions
@@ -233,14 +244,19 @@
 				#region V2 Bootstrap
 				V2Binaries {
 					if ($isOnWindows) {
-						if (-not (Test-Path -Path "$env:ProgramFiles\Microsoft\Windows\PowerShell\PowerShellGet")) {
-							$null = New-Item -Path "$env:ProgramFiles\Microsoft\Windows\PowerShell\PowerShellGet" -ItemType Directory -Force
+						$getRoot = "$env:ProgramFiles\Microsoft\Windows\PowerShell\PowerShellGet"
+						if ($AsCurrentUser) { $getRoot = "$env:LocalAppData\Microsoft\Windows\PowerShell\PowerShellGet" }
+						if (-not (Test-Path -Path $getRoot)) {
+							$null = New-Item -Path $getRoot -ItemType Directory -Force
 						}
-						Copy-Item -Path (Join-Path -Path $tempFolder -ChildPath 'NuGet.exe') -Destination "$env:ProgramFiles\Microsoft\Windows\PowerShell\PowerShellGet" -Force
-						if (-not (Test-Path -Path "$env:ProgramFiles\PackageManagement\ProviderAssemblies\nuget\2.8.5.208")) {
-							$null = New-Item -Path "$env:ProgramFiles\PackageManagement\ProviderAssemblies\nuget\2.8.5.208" -ItemType Directory -Force
+						Copy-Item -Path (Join-Path -Path $tempFolder -ChildPath 'NuGet.exe') -Destination $getRoot -Force
+
+						$nugetRoot = "$env:ProgramFiles\PackageManagement\ProviderAssemblies\nuget\2.8.5.208"
+						if ($AsCurrentUser) { $nugetRoot = "$env:LOCALAPPDATA\PackageManagement\ProviderAssemblies\nuget\2.8.5.208"}
+						if (-not (Test-Path -Path $nugetRoot)) {
+							$null = New-Item -Path $nugetRoot -ItemType Directory -Force
 						}
-						Copy-Item -Path (Join-Path -Path $tempFolder -ChildPath 'Microsoft.PackageManagement.NuGetProvider.dll') -Destination "$env:ProgramFiles\PackageManagement\ProviderAssemblies\nuget\2.8.5.208" -Force
+						Copy-Item -Path (Join-Path -Path $tempFolder -ChildPath 'Microsoft.PackageManagement.NuGetProvider.dll') -Destination $nugetRoot -Force
 					}
 					else {
 						Copy-Item -Path (Join-Path -Path $tempFolder -ChildPath 'NuGet.exe') -Destination "$HOME/.config/powershell/powershellget" -Force
@@ -251,6 +267,10 @@
 				#region V2 Latest
 				V2Latest {
 					$modulesFolder = "$env:ProgramFiles\WindowsPowerShell\modules"
+					if ($AsCurrentUser) {
+						$modulesFolder = $env:PSModulePath -split ';' | Microsoft.PowerShell.Core\Where-Object { $_ -match '\\Documents\\' } | Microsoft.PowerShell.Utility\Select-Object -First 1
+						if (-not $modulesFolder) { $env:PSModulePath -split ';' | Microsoft.PowerShell.Utility\Select-Object -First 1 }
+					}
 					if (-not $isOnWindows) { $modulesFolder = "/usr/local/share/powershell/Modules" }
 
 					Install-ZipModule -Config $data.Config.PSGetV2 -ModulesFolder $modulesFolder -TempFolder $tempFolder
@@ -261,6 +281,10 @@
 				#region V3 Latest
 				V3Latest {
 					$modulesFolder = "$env:ProgramFiles\WindowsPowerShell\modules"
+					if ($AsCurrentUser) {
+						$modulesFolder = $env:PSModulePath -split ';' | Microsoft.PowerShell.Core\Where-Object { $_ -match '\\Documents\\' } | Microsoft.PowerShell.Utility\Select-Object -First 1
+						if (-not $modulesFolder) { $env:PSModulePath -split ';' | Microsoft.PowerShell.Utility\Select-Object -First 1 }
+					}
 					if (-not $isOnWindows) { $modulesFolder = "/usr/local/share/powershell/Modules" }
 
 					Install-ZipModule -Config $data.Config.PSGetV3 -ModulesFolder $modulesFolder -TempFolder $tempFolder
@@ -285,6 +309,14 @@
 				$useInternal = $false
 			}
 		}
+
+		$asCurrentUser = $UserMode.ToBool()
+		if (-not $asCurrentUser -and
+			($env:COMPUTERNAME -eq $ComputerName) -and
+			(-not (Test-PSFPowerShell -Elevated))
+		) {
+			$asCurrentUser = $true
+		}
 		#endregion Resolve Source Configuration
 	}
 	process {
@@ -298,7 +330,7 @@
 			$binaries = Resolve-PowerShellGet -Type $typeEntry -Offline:$stayOffline -SourcePath $SourcePath -NotInternal:$useInternal
 	
 			# Execute Deployment
-			Invoke-PSFCommand -ComputerName $ComputerName -ScriptBlock $code -Credential $Credential -ArgumentList $binaries
+			Invoke-PSFCommand -ComputerName $ComputerName -ScriptBlock $code -Credential $Credential -ArgumentList $binaries, $asCurrentUser
 		}
 	}
 	end {

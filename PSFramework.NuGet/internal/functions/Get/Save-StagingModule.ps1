@@ -116,6 +116,9 @@
 			$tempDirectory = New-PSFTempDirectory -Name StagingSub -ModuleName PSFramework.NuGet
 			$param = $Item.v2Param
 			$actualParam = $param + $callSpecifics | ConvertTo-PSFHashtable -ReferenceCommand Save-Module
+			if ($param.AllowPrerelease -and $actualParam.Keys -notcontains 'AllowPrerelease') {
+				Write-PSFMessage -Level Warning -String 'Save-PSFModule.AllowPrerease.NotSupported' -Once 'OldPSGetV2_Prerelease'
+			}
 
 			# 1) Save to temp folder
 			try { Save-Module @actualParam -Path $tempDirectory }

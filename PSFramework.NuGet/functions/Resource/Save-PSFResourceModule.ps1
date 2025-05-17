@@ -88,6 +88,14 @@
 		[string[]]
 		$Name,
 
+		[Parameter(Mandatory = $true, Position = 1)]
+		[PSFDirectory]
+		$Path,
+
+		[PsfArgumentCompleter('PSFramework.NuGet.Repository')]
+		[string[]]
+		$Repository = ((Get-PSFrepository).Name | Sort-Object -Unique),
+
 		[Parameter(ParameterSetName = 'ByName')]
 		[string]
 		$Version,
@@ -95,10 +103,6 @@
 		[Parameter(ParameterSetName = 'ByName')]
 		[switch]
 		$Prerelease,
-
-		[Parameter(Mandatory = $true, Position = 1)]
-		[PSFDirectory]
-		$Path,
 
 		[switch]
 		$SkipDependency,
@@ -111,10 +115,6 @@
 
 		[PSCredential]
 		$Credential,
-
-		[PsfArgumentCompleter('PSFramework.NuGet.Repository')]
-		[string[]]
-		$Repository = ((Get-PSFrepository).Name | Sort-Object -Unique),
 
 		[switch]
 		$TrustRepository,
@@ -151,6 +151,8 @@
 						if (-not $PSCmdlet.ShouldProcess("$($module.Name) ($($versionFolder.Name))", "Deploy to $pathEntry")) {
 							continue
 						}
+
+						ConvertFrom-TransportFile -Path $dataPath
 
 						foreach ($item in Get-ChildItem -LiteralPath $dataPath) {
 							$targetPath = Join-Path -Path $pathEntry -ChildPath $item.Name

@@ -131,30 +131,6 @@
 		$param = $PSBoundParameters | ConvertTo-PSFHashtable -Include Name, Repository, Tag, Credential, IncludeDependencies
 	}
 	process {
-		#region V2
-		if ($script:psget.V2 -and $Type -in 'All', 'V2') {
-			$paramClone = $param.Clone()
-			$paramClone += $PSBoundParameters | ConvertTo-PSFHashtable -Include AllVersions, AllowPrerelease
-			if ($Version) {
-				if ($convertedVersion.Required) { $paramClone.RequiredVersion = $convertedVersion.Required }
-				if ($convertedVersion.Minimum) { $paramClone.MinimumVersion = $convertedVersion.Minimum }
-				if ($convertedVersion.Maximum) { $paramClone.MaximumVersion = $convertedVersion.Maximum }
-			}
-			$execute = $true
-			if ($paramClone.Repository) {
-				$paramClone.Repository = $paramClone.Repository | Where-Object {
-					$_ -match '\*' -or
-					$_ -in (Get-PSFRepository -Type V2).Name
-				}
-				$execute = $paramClone.Repository -as [bool]
-			}
-
-			if ($execute) {
-				Find-Module @paramClone | ConvertFrom-ModuleInfo
-			}
-		}
-		#endregion V2
-
 		#region V3
 		if ($script:psget.V3 -and $Type -in 'All', 'V3') {
 			$paramClone = $param.Clone()
@@ -178,5 +154,33 @@
 			}
 		}
 		#endregion V3
+
+		#region V2
+		if ($script:psget.V2 -and $Type -in 'All', 'V2') {
+			$paramClone = $param.Clone()
+			$paramClone += $PSBoundParameters | ConvertTo-PSFHashtable -Include AllVersions, AllowPrerelease
+			if ($Version) {
+				if ($convertedVersion.Required) { $paramClone.RequiredVersion = $convertedVersion.Required }
+				if ($convertedVersion.Minimum) { $paramClone.MinimumVersion = $convertedVersion.Minimum }
+				if ($convertedVersion.Maximum) { $paramClone.MaximumVersion = $convertedVersion.Maximum }
+			}
+			$execute = $true
+			if ($paramClone.Repository) {
+				$paramClone.Repository = $paramClone.Repository | Where-Object {
+					$_ -match '\*' -or
+					$_ -in (Get-PSFRepository -Type V2).Name
+				}
+				$execute = $paramClone.Repository -as [bool]
+			}
+
+			if ($execute) {
+				$paramClone = $paramClone | ConvertTo-PSFHashtable -ReferenceCommand Find-Module
+				if ($AllowPrerelease -and $paramClone.Keys -notcontains 'AllowPrerelease') {
+					Write-PSFMessage -Level Warning -String 'Find-PSFModule.AllowPrerease.NotSupported' -Once 'OldPSGetV2_Prerelease'
+				}
+				Find-Module @paramClone | ConvertFrom-ModuleInfo
+			}
+		}
+		#endregion V2
 	}
 }

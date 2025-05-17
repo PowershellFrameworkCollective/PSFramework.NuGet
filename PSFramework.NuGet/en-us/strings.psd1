@@ -8,6 +8,8 @@
 	'Copy-Module.Error.StagingFolderCopy'                        = 'Failed to deploy module to staging directory when trying to publish {0}' # $Path
 	'Copy-Module.Error.StagingFolderFailed'                      = 'Failed to create staging folder when trying to publish {0}' # $Path
 
+	'Find-PSFModule.AllowPrerease.NotSupported'                  = 'Cannot search for prerelease modules - PowerShellGet is too old! To fix this, use "Install-PSFPowerShellGet -Type V2Latest, V3Latest" and start a new console.' #
+	
 	'Install-PSFModule.Error.Installation'                       = 'Failed to install {0}' # $Name -join ','
 	'Install-PSFModule.Error.NoComputerValid'                    = 'Unable to establish ANY remote connections to {0}' # $ComputerName -join ', 
 	'Install-PSFModule.Error.Setup'                              = 'Failed to prepare to install {0}' # $Name -join ','
@@ -65,6 +67,7 @@
 
 	'Save-PowerShellGet.Error.UnableToResolve'                   = 'Unable to resolve aka.ms link: {0}. Make sure internet access is available!' # $link
 
+	'Save-PSFModule.AllowPrerease.NotSupported'                  = 'Cannot install prerelease modules - PowerShellGet is too old! To fix this, use "Install-PSFPowerShellGet -Type V2Latest, V3Latest" and start a new console.' #
 	'Save-PSFModule.Error.NoComputerValid'                       = 'Failed to connect to any of the provided computer targets: {0}' # ($ComputerName -join ', ')
 
 	'Save-PSFResourceModule.Deploying'                           = 'Deploying {2} from resource module {0} ({1}) to {3}' # $module.Name, $versionFolder.Name, $item.Name, $pathEntry
