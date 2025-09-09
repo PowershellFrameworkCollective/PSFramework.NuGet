@@ -47,7 +47,7 @@ function Find-GalleryModule {
 		[PSCustomObject]@{
 			Name    = $moduleName
 			Version = $latest.Version
-			Link    = 'https://psg-prod-eastus.azureedge.net/packages/{0}.{1}.nupkg' -f $moduleName.ToLower(), $latest.Version
+			Link    = 'https://cdn.powershellgallery.com/packages/{0}.{1}.nupkg' -f $moduleName.ToLower(), $latest.Version
 		}
 	}
 }
