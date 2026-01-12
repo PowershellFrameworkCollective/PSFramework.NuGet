@@ -56,7 +56,7 @@ Of course, problem here is that if you want to use this module, this very line m
 So, here is a way to bootstrap your current console without requiring PowerShellGet to already function:
 
 ```powershell
-iwr https://raw.githubusercontent.com/PowershellFrameworkCollective/PSFramework.NuGet/refs/heads/master/bootstrap.ps1 | iex
+iwr https://raw.githubusercontent.com/PowershellFrameworkCollective/PSFramework.NuGet/refs/heads/master/bootstrap.ps1 -UseBasicParsing | iex
 ```
 
 > Update the Tooling
