@@ -76,7 +76,7 @@ function Install-GalleryModule {
 
 	$ProgressPreference = 'SilentlyContinue'
 	$staging = New-Item -Path $env:TEMP -Name "PSMS-$(Get-Random)" -ItemType Directory
-	Invoke-WebRequest -Uri $Module.Link -OutFile "$($staging.FullName)\$($Module.Name).zip" -ErrorAction Stop
+	Invoke-WebRequest -Uri $Module.Link -OutFile "$($staging.FullName)\$($Module.Name).zip" -UseBasicParsing -ErrorAction Stop
 	Expand-Archive -Path "$($staging.FullName)\$($Module.Name).zip" -DestinationPath $staging.FullName -ErrorAction Stop
 	
 	# Remove undesired parts
