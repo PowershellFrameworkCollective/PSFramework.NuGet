@@ -47,7 +47,7 @@ function Find-GalleryModule {
 		[PSCustomObject]@{
 			Name    = $moduleName
 			Version = $latest.Version
-			Link    = 'https://psg-prod-eastus.azureedge.net/packages/{0}.{1}.nupkg' -f $moduleName.ToLower(), $latest.Version
+			Link    = 'https://cdn.powershellgallery.com/packages/{0}.{1}.nupkg' -f $moduleName.ToLower(), $latest.Version
 		}
 	}
 }
@@ -76,7 +76,7 @@ function Install-GalleryModule {
 
 	$ProgressPreference = 'SilentlyContinue'
 	$staging = New-Item -Path $env:TEMP -Name "PSMS-$(Get-Random)" -ItemType Directory
-	Invoke-WebRequest -Uri $Module.Link -OutFile "$($staging.FullName)\$($Module.Name).zip" -ErrorAction Stop
+	Invoke-WebRequest -Uri $Module.Link -OutFile "$($staging.FullName)\$($Module.Name).zip" -UseBasicParsing -ErrorAction Stop
 	Expand-Archive -Path "$($staging.FullName)\$($Module.Name).zip" -DestinationPath $staging.FullName -ErrorAction Stop
 	
 	# Remove undesired parts
